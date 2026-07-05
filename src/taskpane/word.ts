@@ -120,7 +120,6 @@ async function applyCaseLawHyperlinksFromSource() {
           if (!normalizedText || !isLikelyCaseCitation(normalizedText)) {
             continue;
           }
-
           const hyperlinks = item.hyperlinks;
           hyperlinks.load("items");
           await context.sync();
@@ -129,8 +128,18 @@ async function applyCaseLawHyperlinksFromSource() {
             continue;
           }
 
-          item.insertHyperlink(url, normalizedText, Word.InsertLocation.replace);
-          await context.sync();
+          if (typeof (item as any).insertHyperlink === "function") {
+            (item as any).insertHyperlink(url, normalizedText, Word.InsertLocation.replace);
+            await context.sync();
+          } else if (typeof (item as any).insertHtml === "function") {
+            const html = `<a href="${escapeHtml(url)}">${escapeHtml(normalizedText)}</a>`;
+            (item as any).insertHtml(html, Word.InsertLocation.replace);
+            await context.sync();
+          } else {
+            // Last-resort: replace with plain text (no hyperlink)
+            item.insertText(normalizedText, Word.InsertLocation.replace);
+            await context.sync();
+          }
           appliedCount += 1;
         }
       }
@@ -238,9 +247,17 @@ async function addParentheticalHyperlinks() {
           if (hyperlinks.items.length > 0) {
             continue;
           }
-
-          item.insertHyperlink(url, entry.citation, Word.InsertLocation.replace);
-          await context.sync();
+          if (typeof (item as any).insertHyperlink === "function") {
+            (item as any).insertHyperlink(url, entry.citation, Word.InsertLocation.replace);
+            await context.sync();
+          } else if (typeof (item as any).insertHtml === "function") {
+            const html = `<a href="${escapeHtml(url)}">${escapeHtml(entry.citation)}</a>`;
+            (item as any).insertHtml(html, Word.InsertLocation.replace);
+            await context.sync();
+          } else {
+            item.insertText(entry.citation, Word.InsertLocation.replace);
+            await context.sync();
+          }
           addedCount += 1;
         }
       }
@@ -375,6 +392,15 @@ function normalizeText(value: string): string {
     .replace(/\u00A0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function escapeHtml(str: string): string {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function isLikelyCaseCitation(value: string): boolean {
