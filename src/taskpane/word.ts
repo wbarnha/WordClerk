@@ -3,6 +3,8 @@
  * See LICENSE in the project root for license information.
  */
 
+/// <reference types="office-js" />
+
 /* global document, Office, Word */
 
 import JSZip from "jszip";
@@ -157,7 +159,8 @@ async function removeCaseLawHyperlinks() {
 
   try {
     await Word.run(async (context) => {
-      const hyperlinks = context.document.body.hyperlinks;
+      const body = context.document.body as any;
+      const hyperlinks = body.hyperlinks;
       hyperlinks.load("items");
       await context.sync();
 
@@ -196,7 +199,7 @@ async function scanParentheticalCitations() {
 
   try {
     await Word.run(async (context) => {
-      const bodyText = context.document.body.getText();
+      const bodyText = (context.document.body as any).getText();
       await context.sync();
       const citations = extractParentheticalCitations(bodyText);
       parentheticalEntries = citations.map((citation, index) => ({
@@ -280,7 +283,8 @@ async function removeParentheticalHyperlinks() {
 
   try {
     await Word.run(async (context) => {
-      const hyperlinks = context.document.body.hyperlinks;
+      const body = context.document.body as any;
+      const hyperlinks = body.hyperlinks;
       hyperlinks.load("items");
       await context.sync();
 
