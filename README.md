@@ -42,7 +42,7 @@ This runs the webpack dev server and uses `office-addin-debugging` to sideload t
 - If `insertHyperlink` is unavailable in your Word environment, the add-in falls back to using `insertHtml` or plain text.
 
 ## Download and install from GitHub
-You can install the add-in into desktop Word from this repository by using the GitHub release package or cloning the repo locally.
+You can install the add-in into desktop Word from this repository by using the GitHub release package, workflow artifacts, or cloning the repo locally.
 
 ### Option 1: Install from GitHub Release asset
 1. Go to the GitHub Releases page for this repo.
@@ -57,7 +57,53 @@ npm run start
 
 5. `npm run start` launches the local dev server and sideloads the add-in into Word Desktop.
 
-### Option 2: Clone the repository and install locally
+### Option 2: Install from GitHub Actions workflow artifact
+1. Open the Actions tab in this repo.
+2. Select the latest successful workflow run for `CI`.
+3. Scroll to the `Artifacts` section and download `wordclerk-addin`.
+4. Extract the downloaded artifact.
+5. Open the extracted folder and run:
+
+```bash
+npm install
+npm run start
+```
+
+This gives you a packaged `wordclerk-addin.zip` plus the source contents.
+
+### Option 3: Create a local install package
+If you want a package that can be uploaded to Word manually, use the package script:
+
+```bash
+npm install
+npm run package
+```
+
+This creates `wordclerk-addin.zip` at the repo root, which contains:
+- `manifest.xml`
+- `dist`
+- `assets`
+
+You can then upload the `manifest.xml` file to Word from `Insert` → `My Add-ins` → `Upload My Add-in` → `Add from file`.
+
+### Option 4: Create a local test environment
+For local QA, you can use the PowerShell helper script:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/setup-local-test.ps1
+```
+
+That script installs dependencies, builds the add-in, and packages `wordclerk-addin.zip`.
+
+After the script completes, run:
+
+```bash
+npm run start
+```
+
+Then open Word and use the add-in from the sideloaded manifest.
+
+### Option 5: Clone the repository and install locally
 1. Clone the repo:
 
 ```bash
