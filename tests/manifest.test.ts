@@ -17,7 +17,7 @@ describe('Office add-in manifest', () => {
     expect(versionOverrides).toBeDefined();
 
     const desktopHost = versionOverrides.Hosts.Host;
-    expect(desktopHost.$.xsi:type || desktopHost.$['xsi:type']).toBe('Document');
+    expect(desktopHost.$['xsi:type'] || desktopHost.$['xsi:type']).toBe('Document');
 
     const extensionPoints = desktopHost.DesktopFormFactor.ExtensionPoint;
     const extensionPointTypes = Array.isArray(extensionPoints)
