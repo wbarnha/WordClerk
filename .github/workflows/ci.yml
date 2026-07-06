@@ -94,9 +94,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to Partner Center (optional)
-        if: ${{ secrets.PARTNER_CENTER_API_URL && secrets.PARTNER_CENTER_CLIENT_ID && secrets.PARTNER_CENTER_CLIENT_SECRET && secrets.PARTNER_CENTER_TENANT_ID }}
         run: |
           set -e
+          if [ -z "${{ secrets.PARTNER_CENTER_API_URL }}" ] || [ -z "${{ secrets.PARTNER_CENTER_CLIENT_ID }}" ] || [ -z "${{ secrets.PARTNER_CENTER_CLIENT_SECRET }}" ] || [ -z "${{ secrets.PARTNER_CENTER_TENANT_ID }}" ]; then
+            echo "Skipping Partner Center publish because required secrets are not configured."
+            exit 0
+          fi
+
           echo "Publishing to Partner Center..."
           sudo apt-get update -y
           sudo apt-get install -y jq
