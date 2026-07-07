@@ -6,32 +6,41 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# $scriptDir is the installer/ subfolder inside the extracted release package.
+# The manifest lives one level up, at the package root.
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot = Split-Path -Parent $scriptDir
+$packageRoot = Split-Path -Parent $scriptDir
 
 if ([string]::IsNullOrWhiteSpace($Target)) {
     if ($env:LOCALAPPDATA) {
         $Target = Join-Path $env:LOCALAPPDATA 'Microsoft\Office\16.0\WEF'
     } else {
-        $Target = Join-Path $repoRoot '.installer-test\wef'
+        $Target = Join-Path $packageRoot '.installer-test\wef'
     }
 }
 
 $manifestFullPath = if ([System.IO.Path]::IsPathRooted($ManifestPath)) {
     $ManifestPath
 } else {
-    Join-Path $repoRoot $ManifestPath
+    Join-Path $packageRoot $ManifestPath
 }
 
-$nodeScript = Join-Path $scriptDir 'install-wordclerk.js'
-
-$dryRunArg = if ($DryRun) { '--dry-run' } else { '' }
-
-Write-Host "Installing WordClerk manifest..."
-node $nodeScript --manifest $manifestFullPath --target $Target $dryRunArg
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Installer failed with exit code $LASTEXITCODE"
+if (-not (Test-Path $manifestFullPath)) {
+    Write-Error "Manifest not found: $manifestFullPath"
+    exit 1
 }
 
-Write-Host "Done."
+$targetManifest = Join-Path $Target 'wordclerk-manifest.xml'
+
+Write-Host "Source manifest: $manifestFullPath"
+Write-Host "Install target:  $targetManifest"
+
+if ($DryRun) {
+    Write-Host 'Dry run enabled. No files were copied.'
+} else {
+    New-Item -ItemType Directory -Path $Target -Force | Out-Null
+    Copy-Item -Path $manifestFullPath -Destination $targetManifest -Force
+    Write-Host 'Manifest installed successfully.'
+}
+
+Write-Host 'Done.'
