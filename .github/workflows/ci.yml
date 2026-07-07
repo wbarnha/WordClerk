@@ -37,6 +37,12 @@ jobs:
           name: wordclerk-addin
           path: wordclerk-addin.zip
 
+      - name: Upload dist artifact for GitHub Pages
+        uses: actions/upload-artifact@v4
+        with:
+          name: wordclerk-dist
+          path: dist/
+
   test:
     name: Test
     needs: build
@@ -81,18 +87,66 @@ jobs:
         run: |
           set -e
           unzip -l wordclerk-addin.zip | tee package-list.txt
-          grep -q "installer/install-wordclerk.js" package-list.txt
           grep -q "installer/install-wordclerk.ps1" package-list.txt
           grep -q "manifest.xml" package-list.txt
+          # Verify the JS installer is no longer bundled (end users do not need Node.js)
+          if grep -q "installer/install-wordclerk.js" package-list.txt; then
+            echo "ERROR: install-wordclerk.js must not be in the release package"
+            exit 1
+          fi
 
-      - name: Installer dry-run smoke test
-        run: npm run install:addin:dry-run
-
-      - name: Installer copy smoke test
+      - name: Verify production manifest URLs
         run: |
           set -e
-          node scripts/install-wordclerk.js --manifest manifest.xml --target .installer-test/wef
-          test -f .installer-test/wef/wordclerk-manifest.xml
+          unzip -p wordclerk-addin.zip manifest.xml > /tmp/release-manifest.xml
+          if grep -q "localhost" /tmp/release-manifest.xml; then
+            echo "ERROR: release manifest still contains localhost URLs"
+            cat /tmp/release-manifest.xml
+            exit 1
+          fi
+          echo "Release manifest URLs look correct:"
+          grep -oE 'https://[a-zA-Z0-9./_-]+' /tmp/release-manifest.xml | sort -u
+
+      - name: Installer PowerShell dry-run smoke test
+        run: |
+          set -e
+          unzip -q wordclerk-addin.zip -d /tmp/wordclerk-release
+          pwsh -NonInteractive -File /tmp/wordclerk-release/installer/install-wordclerk.ps1 -DryRun
+
+      - name: Installer PowerShell copy smoke test
+        run: |
+          set -e
+          pwsh -NonInteractive -File /tmp/wordclerk-release/installer/install-wordclerk.ps1 \
+            -ManifestPath manifest.xml \
+            -Target /tmp/wordclerk-wef
+          test -f /tmp/wordclerk-wef/wordclerk-manifest.xml
+
+  deploy-pages:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')) || github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: wordclerk-dist
+          path: dist/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
   publish:
     name: Publish Add-in

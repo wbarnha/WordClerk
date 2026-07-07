@@ -71,98 +71,54 @@ All of the following are **devDependency-only** issues — they live in the loca
 **Why `overrides` instead of upgrading `copy-webpack-plugin`/`webpack-dev-server` to their latest majors?** `npm audit fix --force` offered `copy-webpack-plugin@14.0.0` and (for a full sockjs fix) `webpack-dev-server@6.0.0`, but those require Node ≥20.9.0 and ≥22.15.0 respectively — bumping this project's minimum Node version is a separate decision with its own blast radius (CI config, contributor tooling), not something to bundle silently into a vulnerability fix. The `overrides` field lets us force the two actually-vulnerable leaf packages (`uuid`, `serialize-javascript`) to patched versions everywhere in the tree, which is what actually eliminates the advisories, without forcing major-version churn on `copy-webpack-plugin`/`webpack-dev-server` or raising the Node floor. If a future contributor *does* want to move to `webpack-dev-server@6`/Node 22+, these overrides can simply be deleted at that point since they'd be redundant.
 
 ## Download and install from GitHub
-You can install the add-in into desktop Word from this repository by using the GitHub release package, workflow artifacts, or cloning the repo locally.
 
-### Option 1: Install from GitHub Release asset
-1. Go to the GitHub Releases page for this repo.
+WordClerk's add-in content is hosted on **GitHub Pages** (`https://wbarnha.github.io/WordClerk/`), so **end users do not need Node.js, npm, or any developer tooling** to install and use the add-in.
+
+### Option 1: Install from GitHub Release asset (recommended — no Node.js required)
+1. Go to the [GitHub Releases page](https://github.com/wbarnha/WordClerk/releases) for this repo.
 2. Download the latest `wordclerk-addin.zip` release asset.
-3. Extract the ZIP. It contains `manifest.xml`, `dist`, and `assets`.
-4. In a terminal, open the extracted folder and run:
+3. Extract the ZIP. It's intentionally small — it contains only:
+   - `manifest.xml` — the add-in manifest (URLs already point to GitHub Pages)
+   - `installer/install-wordclerk.ps1` — a standalone PowerShell installer (no Node.js required)
 
-```bash
-npm install
-npm run start
+   Nothing else ships here: the manifest's URLs point at GitHub Pages, so Word fetches the taskpane, commands, and icons live over HTTPS rather than reading local files.
+4. **Windows**: open PowerShell and run the installer:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\install-wordclerk.ps1
 ```
 
-5. `npm run start` launches the local dev server and sideloads the add-in into Word Desktop.
+   This copies `manifest.xml` into Word's local add-in manifest folder (`%LOCALAPPDATA%\Microsoft\Office\16.0\WEF`).
+
+5. Restart Word and the **WordClerk** button will appear on the **Home** ribbon.
+
+> **No Node.js or npm is needed.** The add-in content is served from GitHub Pages; the installer is pure PowerShell.
 
 ### Option 2: Install from GitHub Actions workflow artifact
-1. Open the Actions tab in this repo.
-2. Select the latest successful workflow run for `CI`.
-3. Scroll to the `Artifacts` section and download `wordclerk-addin`.
+1. Open the **Actions** tab in this repo.
+2. Select the latest successful **CI** workflow run.
+3. Scroll to the **Artifacts** section and download `wordclerk-addin`.
 4. Extract the downloaded artifact.
-5. Open the extracted folder and run:
+5. Follow the same steps as Option 1 (run `installer\install-wordclerk.ps1`).
 
-```bash
-npm install
-npm run start
-```
+### Option 3: Manual sideload via manifest
+If you prefer to sideload the manifest manually in Word Desktop:
+1. Extract `wordclerk-addin.zip` (from a release or CI artifact).
+2. In Word, go to `Insert` → `My Add-ins` → `Upload My Add-in` → `Add from file`.
+3. Select the `manifest.xml` from the extracted folder.
 
-This gives you a packaged `wordclerk-addin.zip` plus the source contents.
+The manifest already points to the add-in content hosted on GitHub Pages — no local server needed.
 
-### Option 3: Create a local install package
-If you want a package that can be uploaded to Word manually, use the package script:
+### Option 4: Create a local install package
+If you want to build and package locally (requires Node.js — for contributors only):
 
 ```bash
 npm install
 npm run package
 ```
 
-This creates `wordclerk-addin.zip` at the repo root, which contains:
-- `manifest.xml`
-- `dist`
-- `assets`
-- `installer/install-wordclerk.js`
-- `installer/install-wordclerk.ps1`
+This creates `wordclerk-addin.zip` at the repo root with the same contents as the release package.
 
-You can then upload the `manifest.xml` file to Word from `Insert` → `My Add-ins` → `Upload My Add-in` → `Add from file`.
-
-### Option 4: Create a local test environment
-For local QA, you can use the PowerShell helper script:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/setup-local-test.ps1
-```
-
-That script installs dependencies, builds the add-in, and packages `wordclerk-addin.zip`.
-The generated package also includes installer scripts that can copy the manifest into Word's local WEF folder.
-
-After the script completes, run:
-
-```bash
-npm run start
-```
-
-Then open Word and use the add-in from the sideloaded manifest.
-
-### Option 5: Clone the repository and install locally
-1. Clone the repo:
-
-```bash
-git clone https://github.com/wbarnha/WordClerk.git
-cd WordClerk
-```
-
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Start the add-in locally and sideload into Word:
-
-```bash
-npm run start
-```
-
-This will launch the dev server on `https://localhost:3000` and load the add-in into Word Desktop using the manifest.
-
-### Manual sideload via manifest
-If you want to sideload the add-in manually in Word Desktop:
-1. Run `npm install` and `npm run build:dev`.
-2. Host the `dist` and `assets` folders on a local HTTPS server matching the URLs in `manifest.xml`.
-3. In Word, go to `Insert` → `My Add-ins` → `Upload My Add-in` → `Add from file`.
-4. Select the extracted or cloned `manifest.xml` file.
-
-> Note: The manifest currently points to `https://localhost:3000/` for the add-in content, so the easiest install path is using `npm run start`.
+### Option 5: Clone the repository and install locally (development)
+See the [Development](#development) section below for instructions on running the add-in from a local dev server.
 
