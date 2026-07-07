@@ -106,7 +106,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          # office-addin-manifest's dependency chain now pulls in an ESM-only package, which Node 18
+          # (used by the other jobs) can't require() -- Node 22.12+ supports require(esm) by default.
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
