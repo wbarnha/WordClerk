@@ -1,3 +1,4 @@
 node_modules
+dist
 .vscode/testfile1.docx
 .vscode/testfile2.docx
