@@ -19,14 +19,6 @@
     <SourceLocation DefaultValue="https://localhost:3000/taskpane.html"/>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
-  <Requirements>
-    <Sets>
-      <Set Name="WordApi" MinVersion="1.9"/>
-      <Set Name="WordApiOnline" MinVersion="1.1"/>
-      <Set Name="AddInCommands" MinVersion="1.1"/>
-      <Set Name="TaskpaneApi" MinVersion="1.1"/>
-    </Sets>
-  </Requirements>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
     <Hosts>
       <Host xsi:type="Document">
