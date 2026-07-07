@@ -9,9 +9,11 @@
 
 import JSZip from "jszip";
 import { normalizeText, isLikelyCaseCitation, extractParentheticalCitations, escapeHtml } from "./utils";
+import { citationProviderRegistry, parseCaseCitation, extractCaseCitations, CitationProvider } from "./providers";
 
 type CitationMap = Map<string, string>;
 type ParentheticalEntry = { citation: string; url: string; id: string };
+type TabId = "case-law" | "non-patent" | "online-lookup";
 
 let sourceCitationMap: CitationMap | null = null;
 let parentheticalEntries: ParentheticalEntry[] = [];
@@ -28,6 +30,11 @@ Office.onReady((info) => {
     const scanButton = document.getElementById("scan-parentheticals") as HTMLButtonElement | null;
     const addParentheticalButton = document.getElementById("add-parenthetical-hyperlinks") as HTMLButtonElement | null;
     const removeParentheticalButton = document.getElementById("remove-parenthetical-hyperlinks") as HTMLButtonElement | null;
+    const onlineLookupTab = document.getElementById("online-lookup-tab") as HTMLButtonElement | null;
+    const providerSelect = document.getElementById("provider-select") as HTMLSelectElement | null;
+    const providerConnectButton = document.getElementById("provider-connect") as HTMLButtonElement | null;
+    const providerDisconnectButton = document.getElementById("provider-disconnect") as HTMLButtonElement | null;
+    const applyOnlineHyperlinksButton = document.getElementById("apply-online-hyperlinks") as HTMLButtonElement | null;
 
     if (sideloadMessage) {
       sideloadMessage.style.display = "none";
@@ -59,7 +66,23 @@ Office.onReady((info) => {
     if (removeParentheticalButton) {
       removeParentheticalButton.addEventListener("click", removeParentheticalHyperlinks);
     }
+    if (onlineLookupTab) {
+      onlineLookupTab.addEventListener("click", () => setActiveTab("online-lookup"));
+    }
+    if (providerSelect) {
+      providerSelect.addEventListener("change", renderProviderPanel);
+    }
+    if (providerConnectButton) {
+      providerConnectButton.addEventListener("click", connectSelectedProvider);
+    }
+    if (providerDisconnectButton) {
+      providerDisconnectButton.addEventListener("click", disconnectSelectedProvider);
+    }
+    if (applyOnlineHyperlinksButton) {
+      applyOnlineHyperlinksButton.addEventListener("click", applyHyperlinksViaProvider);
+    }
 
+    populateProviderSelect();
     setActiveTab("case-law");
   }
 });
@@ -86,6 +109,24 @@ async function onSourceFileSelected(event: Event) {
   } catch (error) {
     setStatus(`Unable to read ${file.name}. ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+async function applyHyperlinkToItem(
+  context: Word.RequestContext,
+  item: Word.Range,
+  url: string,
+  displayText: string
+): Promise<void> {
+  if (typeof (item as any).insertHyperlink === "function") {
+    (item as any).insertHyperlink(url, displayText, Word.InsertLocation.replace);
+  } else if (typeof (item as any).insertHtml === "function") {
+    const html = `<a href="${escapeHtml(url)}">${escapeHtml(displayText)}</a>`;
+    (item as any).insertHtml(html, Word.InsertLocation.replace);
+  } else {
+    // Last-resort: replace with plain text (no hyperlink)
+    item.insertText(displayText, Word.InsertLocation.replace);
+  }
+  await context.sync();
 }
 
 async function applyCaseLawHyperlinksFromSource() {
@@ -131,18 +172,7 @@ async function applyCaseLawHyperlinksFromSource() {
             continue;
           }
 
-          if (typeof (item as any).insertHyperlink === "function") {
-            (item as any).insertHyperlink(url, normalizedText, Word.InsertLocation.replace);
-            await context.sync();
-          } else if (typeof (item as any).insertHtml === "function") {
-            const html = `<a href="${escapeHtml(url)}">${escapeHtml(normalizedText)}</a>`;
-            (item as any).insertHtml(html, Word.InsertLocation.replace);
-            await context.sync();
-          } else {
-            // Last-resort: replace with plain text (no hyperlink)
-            item.insertText(normalizedText, Word.InsertLocation.replace);
-            await context.sync();
-          }
+          await applyHyperlinkToItem(context, item, url, normalizedText);
           appliedCount += 1;
         }
       }
@@ -221,17 +251,7 @@ async function addParentheticalHyperlinks() {
           if (hyperlinks.items.length > 0) {
             continue;
           }
-          if (typeof (item as any).insertHyperlink === "function") {
-            (item as any).insertHyperlink(url, entry.citation, Word.InsertLocation.replace);
-            await context.sync();
-          } else if (typeof (item as any).insertHtml === "function") {
-            const html = `<a href="${escapeHtml(url)}">${escapeHtml(entry.citation)}</a>`;
-            (item as any).insertHtml(html, Word.InsertLocation.replace);
-            await context.sync();
-          } else {
-            item.insertText(entry.citation, Word.InsertLocation.replace);
-            await context.sync();
-          }
+          await applyHyperlinkToItem(context, item, url, entry.citation);
           addedCount += 1;
         }
       }
@@ -253,21 +273,194 @@ async function removeParentheticalHyperlinks() {
   }
 }
 
-function setActiveTab(tabName: string) {
-  const caseLawPanel = document.getElementById("case-law-panel");
-  const nonPatentPanel = document.getElementById("non-patent-panel");
-  const caseLawTab = document.getElementById("case-law-tab");
-  const nonPatentTab = document.getElementById("non-patent-tab");
-
-  if (caseLawPanel && nonPatentPanel && caseLawTab && nonPatentTab) {
-    const isCaseLaw = tabName === "case-law";
-    caseLawPanel.classList.toggle("active", isCaseLaw);
-    nonPatentPanel.classList.toggle("active", !isCaseLaw);
-    caseLawTab.classList.toggle("active", isCaseLaw);
-    caseLawTab.setAttribute("aria-selected", isCaseLaw ? "true" : "false");
-    nonPatentTab.classList.toggle("active", !isCaseLaw);
-    nonPatentTab.setAttribute("aria-selected", isCaseLaw ? "false" : "true");
+function populateProviderSelect() {
+  const select = document.getElementById("provider-select") as HTMLSelectElement | null;
+  if (!select) {
+    return;
   }
+
+  select.innerHTML = "";
+  citationProviderRegistry.list().forEach((provider) => {
+    const option = document.createElement("option");
+    option.value = provider.id;
+    option.textContent = provider.name;
+    select.appendChild(option);
+  });
+
+  renderProviderPanel();
+}
+
+function getSelectedProvider(): CitationProvider | undefined {
+  const select = document.getElementById("provider-select") as HTMLSelectElement | null;
+  if (!select || !select.value) {
+    return undefined;
+  }
+  return citationProviderRegistry.get(select.value);
+}
+
+function renderProviderPanel() {
+  const provider = getSelectedProvider();
+  const descriptionEl = document.getElementById("provider-description");
+  const fieldsContainer = document.getElementById("provider-credential-fields");
+
+  if (descriptionEl) {
+    descriptionEl.textContent = provider?.description || "";
+  }
+
+  if (fieldsContainer) {
+    fieldsContainer.innerHTML = "";
+    provider?.credentialFields.forEach((field) => {
+      const row = document.createElement("div");
+      row.className = "citation-row";
+
+      const label = document.createElement("label");
+      label.setAttribute("for", `credential-${provider.id}-${field.key}`);
+      label.textContent = field.label;
+
+      const input = document.createElement("input");
+      input.id = `credential-${provider.id}-${field.key}`;
+      input.className = "url-input";
+      input.type = field.type;
+      if (field.placeholder) {
+        input.placeholder = field.placeholder;
+      }
+
+      row.appendChild(label);
+      row.appendChild(input);
+      fieldsContainer.appendChild(row);
+    });
+  }
+
+  updateProviderAuthStatus();
+}
+
+function updateProviderAuthStatus() {
+  const provider = getSelectedProvider();
+  const statusEl = document.getElementById("provider-auth-status");
+  if (!statusEl) {
+    return;
+  }
+
+  if (!provider) {
+    statusEl.textContent = "";
+  } else if (!provider.requiresAuth) {
+    statusEl.textContent = "Ready to use (no sign-in required).";
+  } else {
+    statusEl.textContent = provider.isAuthenticated() ? "Connected." : "Not connected.";
+  }
+}
+
+async function connectSelectedProvider() {
+  const provider = getSelectedProvider();
+  if (!provider) {
+    return;
+  }
+
+  const credentials: Record<string, string> = {};
+  provider.credentialFields.forEach((field) => {
+    const input = document.getElementById(`credential-${provider.id}-${field.key}`) as HTMLInputElement | null;
+    credentials[field.key] = input?.value ?? "";
+  });
+
+  setStatus(`Connecting to ${provider.name}...`);
+  try {
+    await provider.authenticate(credentials);
+    setStatus(`Connected to ${provider.name}.`);
+  } catch (error) {
+    setStatus(`Unable to connect to ${provider.name}. ${error instanceof Error ? error.message : String(error)}`);
+  }
+  updateProviderAuthStatus();
+}
+
+function disconnectSelectedProvider() {
+  const provider = getSelectedProvider();
+  if (!provider) {
+    return;
+  }
+  provider.signOut();
+  setStatus(`Disconnected from ${provider.name}.`);
+  updateProviderAuthStatus();
+}
+
+async function applyHyperlinksViaProvider() {
+  const provider = getSelectedProvider();
+  if (!provider) {
+    setStatus("Choose a lookup provider first.");
+    return;
+  }
+  if (provider.requiresAuth && !provider.isAuthenticated()) {
+    setStatus(`Connect to ${provider.name} first.`);
+    return;
+  }
+
+  setStatus(`Scanning the document for citations to look up via ${provider.name}...`);
+
+  try {
+    await Word.run(async (context) => {
+      const bodyText = (context.document.body as any).getText();
+      await context.sync();
+
+      const candidates = extractCaseCitations(bodyText);
+      if (candidates.length === 0) {
+        setStatus("No case citations were found in the current document.");
+        return;
+      }
+
+      let linkedCount = 0;
+      let skippedCount = 0;
+
+      // Looked up one at a time (not in parallel) to stay within each provider's rate limits.
+      for (const raw of candidates) {
+        const parsed = parseCaseCitation(raw) || { raw };
+        const match = await provider.lookupCitation(parsed);
+        if (!match) {
+          skippedCount += 1;
+          continue;
+        }
+
+        const results = context.document.body.search(raw, { matchCase: false, matchWholeWord: false });
+        results.load("items");
+        await context.sync();
+
+        for (const item of results.items) {
+          const hyperlinks = item.hyperlinks;
+          hyperlinks.load("items");
+          await context.sync();
+
+          if (hyperlinks.items.length > 0) {
+            continue;
+          }
+          await applyHyperlinkToItem(context, item, match.url, raw);
+        }
+
+        linkedCount += 1;
+      }
+
+      setStatus(
+        `Linked ${linkedCount} of ${candidates.length} citation(s) via ${provider.name}. ` +
+          `${skippedCount} could not be resolved and were left unchanged.`
+      );
+    });
+  } catch (error) {
+    setStatus(`Unable to complete the online lookup. ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+const TAB_ELEMENT_IDS: Record<TabId, { tab: string; panel: string }> = {
+  "case-law": { tab: "case-law-tab", panel: "case-law-panel" },
+  "non-patent": { tab: "non-patent-tab", panel: "non-patent-panel" },
+  "online-lookup": { tab: "online-lookup-tab", panel: "online-lookup-panel" },
+};
+
+function setActiveTab(tabName: TabId) {
+  (Object.keys(TAB_ELEMENT_IDS) as TabId[]).forEach((id) => {
+    const isActive = id === tabName;
+    const tabEl = document.getElementById(TAB_ELEMENT_IDS[id].tab);
+    const panelEl = document.getElementById(TAB_ELEMENT_IDS[id].panel);
+    tabEl?.classList.toggle("active", isActive);
+    tabEl?.setAttribute("aria-selected", isActive ? "true" : "false");
+    panelEl?.classList.toggle("active", isActive);
+  });
 
   if (tabName === "non-patent" && parentheticalEntries.length === 0) {
     scanParentheticalCitations();
