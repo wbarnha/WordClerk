@@ -398,8 +398,9 @@ async function applyHyperlinksViaProvider() {
 
   try {
     await Word.run(async (context) => {
-      const bodyText = (context.document.body as any).getText();
+      context.document.body.load("text");
       await context.sync();
+      const bodyText = context.document.body.text;
 
       const candidates = extractCaseCitations(bodyText);
       if (candidates.length === 0) {
