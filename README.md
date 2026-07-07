@@ -1,6 +1,17 @@
 # WordClerk
 
 [![CI](https://github.com/wbarnha/WordClerk/actions/workflows/ci.yml/badge.svg)](https://github.com/wbarnha/WordClerk/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/wbarnha/WordClerk?style=flat-square)](https://github.com/wbarnha/WordClerk/releases)
+[![License: MIT](https://img.shields.io/github/license/wbarnha/WordClerk?style=flat-square)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/wbarnha/WordClerk?style=flat-square)](https://github.com/wbarnha/WordClerk/commits/main)
+[![Open issues](https://img.shields.io/github/issues/wbarnha/WordClerk?style=flat-square)](https://github.com/wbarnha/WordClerk/issues)
+[![Open PRs](https://img.shields.io/github/issues-pr/wbarnha/WordClerk?style=flat-square)](https://github.com/wbarnha/WordClerk/pulls)
+[![Stars](https://img.shields.io/github/stars/wbarnha/WordClerk?style=flat-square)](https://github.com/wbarnha/WordClerk/stargazers)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4-3178C6?style=flat-square&logo=typescript&logoColor=white)](tsconfig.json)
+[![Node.js](https://img.shields.io/badge/Node.js-16%2B-339933?style=flat-square&logo=node.js&logoColor=white)](README.md#development)
+[![Code style: Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4?style=flat-square&logo=prettier&logoColor=white)](https://www.npmjs.com/package/office-addin-prettier-config)
+[![Platform: Word Add-in](https://img.shields.io/badge/platform-Word%20Add--in-2B579A?style=flat-square&logo=microsoftword&logoColor=white)](manifest.xml)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/wbarnha/WordClerk/pulls)
 
 WordClerk is a Word add-in (task pane) for applying and removing hyperlinks to case-law and parenthetical citations.
 
