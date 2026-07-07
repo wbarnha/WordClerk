@@ -121,6 +121,52 @@ jobs:
             -Target /tmp/wordclerk-wef
           test -f /tmp/wordclerk-wef/wordclerk-manifest.xml
 
+  offline-smoke:
+    name: Offline Package Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Package offline add-in
+        run: npm run package:offline
+
+      - name: Verify offline package contents
+        run: |
+          set -e
+          unzip -l wordclerk-addin-offline.zip | tee offline-package-list.txt
+          grep -q "installer/setup-local-server.ps1" offline-package-list.txt
+          grep -q "installer/serve-wordclerk.ps1" offline-package-list.txt
+          grep -q "app/taskpane.html" offline-package-list.txt
+          grep -q "app/commands.html" offline-package-list.txt
+          grep -q " manifest.xml" offline-package-list.txt
+
+      - name: Verify manifest placeholders
+        run: |
+          set -e
+          unzip -p wordclerk-addin-offline.zip manifest.xml > /tmp/offline-manifest.xml
+          grep -q "localhost:{{PORT}}" /tmp/offline-manifest.xml
+          grep -q "k={{SECRET}}" /tmp/offline-manifest.xml
+          if grep -q "wbarnha.github.io" /tmp/offline-manifest.xml; then
+            echo "ERROR: offline manifest should not reference GitHub Pages"
+            exit 1
+          fi
+
+      - name: Setup script dry-run smoke test
+        run: |
+          set -e
+          unzip -q wordclerk-addin-offline.zip -d /tmp/wordclerk-offline
+          pwsh -NonInteractive -File /tmp/wordclerk-offline/installer/setup-local-server.ps1 -DryRun
+
   deploy-pages:
     name: Deploy to GitHub Pages
     needs: build
@@ -150,7 +196,7 @@ jobs:
 
   publish:
     name: Publish Add-in
-    needs: [build, test, installer-smoke]
+    needs: [build, test, installer-smoke, offline-smoke]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
@@ -192,6 +238,19 @@ jobs:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./wordclerk-addin.zip
           asset_name: wordclerk-addin.zip
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package offline add-in
+        run: npm run package:offline
+
+      - name: Upload offline release asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./wordclerk-addin-offline.zip
+          asset_name: wordclerk-addin-offline.zip
           asset_content_type: application/zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

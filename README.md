@@ -122,6 +122,27 @@ This creates `wordclerk-addin.zip` at the repo root with the same contents as th
 ### Option 5: Clone the repository and install locally (development)
 See the [Development](#development) section below for instructions on running the add-in from a local dev server.
 
+### Option 6: Run fully offline (no internet connection required)
+
+Both Option 1 and Option 2 need internet access every time the add-in loads, since Word fetches its content live from GitHub Pages. If you need WordClerk to work with no network connection at all, use the offline package instead:
+
+1. Download `wordclerk-addin-offline.zip` from the [GitHub Releases page](https://github.com/wbarnha/WordClerk/releases).
+2. Extract it, then run the setup script:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installer\setup-local-server.ps1
+```
+
+3. Windows will prompt for administrator approval once (UAC) — this is only used to bind a self-signed HTTPS certificate to a single `127.0.0.1` port and is not required again after the first run.
+4. Restart Word.
+
+This installs a small local web server that:
+- **Only binds to `127.0.0.1`** on one fixed port (`44399` by default) — it's unreachable from the network, and no other ports are opened.
+- **Requires a per-install secret token** to serve any content, so other local processes can't casually request pages from it.
+- **Runs hidden and starts automatically at login** (via a Scheduled Task named `WordClerkLocalServer`), so the add-in works immediately without you needing to start anything yourself.
+
+See `scripts/local-server/serve-wordclerk.ps1` and `scripts/local-server/setup-local-server.ps1` for the implementation. To remove it later: `Unregister-ScheduledTask -TaskName WordClerkLocalServer`, then remove `%LOCALAPPDATA%\WordClerk\LocalServer`.
+
 ## Self-hosting
 
 By default, production builds point the manifest at the project's GitHub Pages deployment (`https://wbarnha.github.io/WordClerk/`), so most users don't need to host anything themselves.
