@@ -77,11 +77,11 @@ WordClerk's add-in content is hosted on **GitHub Pages** (`https://wbarnha.githu
 ### Option 1: Install from GitHub Release asset (recommended — no Node.js required)
 1. Go to the [GitHub Releases page](https://github.com/wbarnha/WordClerk/releases) for this repo.
 2. Download the latest `wordclerk-addin.zip` release asset.
-3. Extract the ZIP. It contains:
+3. Extract the ZIP. It's intentionally small — it contains only:
    - `manifest.xml` — the add-in manifest (URLs already point to GitHub Pages)
-   - `dist/` — the pre-built add-in bundle
-   - `assets/` — icon and image assets
    - `installer/install-wordclerk.ps1` — a standalone PowerShell installer (no Node.js required)
+
+   Nothing else ships here: the manifest's URLs point at GitHub Pages, so Word fetches the taskpane, commands, and icons live over HTTPS rather than reading local files.
 4. **Windows**: open PowerShell and run the installer:
 
 ```powershell
