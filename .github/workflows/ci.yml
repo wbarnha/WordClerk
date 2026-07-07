@@ -105,7 +105,7 @@ jobs:
             exit 1
           fi
           echo "Release manifest URLs look correct:"
-          grep -o 'https://[^"]*' /tmp/release-manifest.xml | sort -u
+          grep -oE 'https://[a-zA-Z0-9./_-]+' /tmp/release-manifest.xml | sort -u
 
       - name: Installer PowerShell dry-run smoke test
         run: |
@@ -124,7 +124,7 @@ jobs:
   deploy-pages:
     name: Deploy to GitHub Pages
     needs: build
-    if: github.event_name == 'push' || github.event_name == 'release'
+    if: (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')) || github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       pages: write

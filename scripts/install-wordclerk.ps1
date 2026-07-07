@@ -15,7 +15,7 @@ if ([string]::IsNullOrWhiteSpace($Target)) {
     if ($env:LOCALAPPDATA) {
         $Target = Join-Path $env:LOCALAPPDATA 'Microsoft\Office\16.0\WEF'
     } else {
-        $Target = Join-Path (Get-Location) '.installer-test\wef'
+        $Target = Join-Path $packageRoot '.installer-test\wef'
     }
 }
 
