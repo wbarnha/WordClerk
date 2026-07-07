@@ -119,7 +119,13 @@ Set-Content -Path $manifestOutPath -Value $manifestContent -NoNewline
 $taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument `
     "-WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -File `"$serverScriptDest`" -Port $Port -Secret $secret -ContentRoot `"$appDir`""
 $taskTrigger = New-ScheduledTaskTrigger -AtLogOn
-Register-ScheduledTask -TaskName 'WordClerkLocalServer' -Action $taskAction -Trigger $taskTrigger `
+# Task Scheduler kills any task after 72 hours by default (ExecutionTimeLimit) and does not
+# restart it on failure unless told to -- both would silently leave WordClerk's local server
+# dead (72h is well within a normal multi-day logged-in session) with no recovery until the
+# next login. RestartCount/-Interval covers crashes; ExecutionTimeLimit Zero means "no limit".
+$taskSettings = New-ScheduledTaskSettingsSet -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1) `
+    -ExecutionTimeLimit ([TimeSpan]::Zero) -DontStopOnIdleEnd
+Register-ScheduledTask -TaskName 'WordClerkLocalServer' -Action $taskAction -Trigger $taskTrigger -Settings $taskSettings `
     -Description 'Serves the WordClerk add-in locally on 127.0.0.1 for offline use.' -Force | Out-Null
 
 Stop-ScheduledTask -TaskName 'WordClerkLocalServer' -ErrorAction SilentlyContinue
