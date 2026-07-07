@@ -26,6 +26,13 @@ const MAX_SOURCE_FILE_BYTES = 20 * 1024 * 1024; // 20 MB compressed upload
 const MAX_ZIP_ENTRY_COUNT = 500;
 const MAX_DECOMPRESSED_XML_BYTES = 50 * 1024 * 1024; // 50 MB per extracted XML part
 
+// Word's Range.search() rejects search strings over 255 characters. citationText here comes
+// from arbitrary hyperlink display text in an untrusted source .docx, so it isn't guaranteed to
+// respect that -- and because all searches for a batch are queued before the first sync, one
+// oversized citation would otherwise fail the sync and abort every citation in the batch, not
+// just the bad one.
+const MAX_SEARCH_TEXT_LENGTH = 255;
+
 let sourceCitationMap: CitationMap | null = null;
 let parentheticalEntries: ParentheticalEntry[] = [];
 
@@ -115,7 +122,8 @@ async function applyCaseLawHyperlinksFromSource() {
       // few per citation -- a document with 50-100+ citations previously meant 200-400+
       // sequential round-trips, which is enough to make the taskpane visibly freeze.
       const citationEntries = Array.from(sourceCitationMap!.entries()).filter(
-        ([citationText, url]) => citationText && url && isSafeHyperlinkUrl(url)
+        ([citationText, url]) =>
+          citationText && citationText.length <= MAX_SEARCH_TEXT_LENGTH && url && isSafeHyperlinkUrl(url)
       );
 
       const searches = citationEntries.map(([citationText, url]) => ({
@@ -215,7 +223,9 @@ async function addParentheticalHyperlinks() {
     await Word.run(async (context) => {
       const validEntries = parentheticalEntries
         .map((entry) => ({ ...entry, url: entry.url.trim() }))
-        .filter((entry) => entry.url && isSafeHyperlinkUrl(entry.url));
+        .filter(
+          (entry) => entry.url && entry.citation.length <= MAX_SEARCH_TEXT_LENGTH && isSafeHyperlinkUrl(entry.url)
+        );
 
       const searches = validEntries.map((entry) => ({
         entry,
