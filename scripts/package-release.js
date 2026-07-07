@@ -4,7 +4,8 @@ const archiver = require('archiver');
 
 const repoRoot = path.resolve(__dirname, '..');
 const outputPath = path.join(repoRoot, 'wordclerk-addin.zip');
-const manifestPath = path.join(repoRoot, 'manifest.xml');
+// Use the manifest from the production build (URLs already replaced by webpack)
+const manifestPath = path.join(repoRoot, 'dist', 'manifest.xml');
 const distPath = path.join(repoRoot, 'dist');
 const assetsPath = path.join(repoRoot, 'assets');
 
@@ -23,12 +24,11 @@ function createArchive() {
     archive.on('error', (err) => reject(err));
 
     archive.pipe(output);
+    // manifest.xml at the package root, sourced from the production build
     archive.file(manifestPath, { name: 'manifest.xml' });
     archive.directory(distPath, 'dist');
     archive.directory(assetsPath, 'assets');
-    archive.file(path.join(repoRoot, 'scripts', 'install-wordclerk.js'), {
-      name: 'installer/install-wordclerk.js',
-    });
+    // Only the standalone PowerShell installer — no Node.js required by end users
     archive.file(path.join(repoRoot, 'scripts', 'install-wordclerk.ps1'), {
       name: 'installer/install-wordclerk.ps1',
     });
@@ -38,7 +38,7 @@ function createArchive() {
 
 async function main() {
   try {
-    ensureExists(manifestPath, 'Manifest file');
+    ensureExists(manifestPath, 'Production manifest (dist/manifest.xml)');
     ensureExists(distPath, 'Build output folder');
     ensureExists(assetsPath, 'Assets folder');
 
