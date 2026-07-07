@@ -10,10 +10,11 @@
 import JSZip from "jszip";
 import { normalizeText, isLikelyCaseCitation, extractParentheticalCitations, escapeHtml } from "./utils";
 import { citationProviderRegistry, parseCaseCitation, extractCaseCitations, CitationProvider } from "./providers";
+import { bluebookRuleSetRegistry, BluebookRuleSet } from "./bluebook";
 
 type CitationMap = Map<string, string>;
 type ParentheticalEntry = { citation: string; url: string; id: string };
-type TabId = "case-law" | "non-patent" | "online-lookup";
+type TabId = "case-law" | "non-patent" | "online-lookup" | "bluebook-check";
 
 let sourceCitationMap: CitationMap | null = null;
 let parentheticalEntries: ParentheticalEntry[] = [];
@@ -35,6 +36,9 @@ Office.onReady((info) => {
     const providerConnectButton = document.getElementById("provider-connect") as HTMLButtonElement | null;
     const providerDisconnectButton = document.getElementById("provider-disconnect") as HTMLButtonElement | null;
     const applyOnlineHyperlinksButton = document.getElementById("apply-online-hyperlinks") as HTMLButtonElement | null;
+    const bluebookCheckTab = document.getElementById("bluebook-check-tab") as HTMLButtonElement | null;
+    const bluebookEditionSelect = document.getElementById("bluebook-edition-select") as HTMLSelectElement | null;
+    const checkBluebookCitationsButton = document.getElementById("check-bluebook-citations") as HTMLButtonElement | null;
 
     if (sideloadMessage) {
       sideloadMessage.style.display = "none";
@@ -81,8 +85,18 @@ Office.onReady((info) => {
     if (applyOnlineHyperlinksButton) {
       applyOnlineHyperlinksButton.addEventListener("click", applyHyperlinksViaProvider);
     }
+    if (bluebookCheckTab) {
+      bluebookCheckTab.addEventListener("click", () => setActiveTab("bluebook-check"));
+    }
+    if (bluebookEditionSelect) {
+      bluebookEditionSelect.addEventListener("change", renderBluebookEditionDescription);
+    }
+    if (checkBluebookCitationsButton) {
+      checkBluebookCitationsButton.addEventListener("click", checkBluebookCitations);
+    }
 
     populateProviderSelect();
+    populateBluebookEditionSelect();
     setActiveTab("case-law");
   }
 });
@@ -452,6 +466,7 @@ const TAB_ELEMENT_IDS: Record<TabId, { tab: string; panel: string }> = {
   "case-law": { tab: "case-law-tab", panel: "case-law-panel" },
   "non-patent": { tab: "non-patent-tab", panel: "non-patent-panel" },
   "online-lookup": { tab: "online-lookup-tab", panel: "online-lookup-panel" },
+  "bluebook-check": { tab: "bluebook-check-tab", panel: "bluebook-check-panel" },
 };
 
 function setActiveTab(tabName: TabId) {
@@ -467,6 +482,119 @@ function setActiveTab(tabName: TabId) {
   if (tabName === "non-patent" && parentheticalEntries.length === 0) {
     scanParentheticalCitations();
   }
+}
+
+function populateBluebookEditionSelect() {
+  const select = document.getElementById("bluebook-edition-select") as HTMLSelectElement | null;
+  if (!select) {
+    return;
+  }
+
+  select.innerHTML = "";
+  bluebookRuleSetRegistry.list().forEach((ruleSet) => {
+    const option = document.createElement("option");
+    option.value = ruleSet.id;
+    option.textContent = ruleSet.name;
+    select.appendChild(option);
+  });
+
+  renderBluebookEditionDescription();
+}
+
+function getSelectedBluebookRuleSet(): BluebookRuleSet | undefined {
+  const select = document.getElementById("bluebook-edition-select") as HTMLSelectElement | null;
+  if (!select || !select.value) {
+    return undefined;
+  }
+  return bluebookRuleSetRegistry.get(select.value);
+}
+
+function renderBluebookEditionDescription() {
+  const descriptionEl = document.getElementById("bluebook-edition-description");
+  if (descriptionEl) {
+    descriptionEl.textContent = getSelectedBluebookRuleSet()?.description || "";
+  }
+}
+
+async function checkBluebookCitations() {
+  const ruleSet = getSelectedBluebookRuleSet();
+  if (!ruleSet) {
+    setStatus("Choose a Bluebook edition first.");
+    return;
+  }
+
+  setStatus(`Checking citations against the ${ruleSet.name}...`);
+
+  try {
+    await Word.run(async (context) => {
+      context.document.body.load("text");
+      await context.sync();
+      const bodyText = context.document.body.text;
+
+      const candidates = extractCaseCitations(bodyText);
+      renderBluebookIssues(candidates, ruleSet);
+
+      if (candidates.length === 0) {
+        setStatus("No case citations were found in the current document.");
+        return;
+      }
+
+      const flaggedCount = candidates.filter((raw) => {
+        const parsed = parseCaseCitation(raw);
+        return parsed && ruleSet.checkCitation(parsed).length > 0;
+      }).length;
+
+      setStatus(`Checked ${candidates.length} citation(s); ${flaggedCount} had possible formatting issues.`);
+    });
+  } catch (error) {
+    setStatus(`Unable to check citations. ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+function renderBluebookIssues(candidates: string[], ruleSet: BluebookRuleSet) {
+  const container = document.getElementById("bluebook-issue-list");
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = "";
+  if (candidates.length === 0) {
+    container.innerHTML = '<p class="helper-text">No case citations found yet. Click "Check citations".</p>';
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  candidates.forEach((raw) => {
+    const parsed = parseCaseCitation(raw);
+    const issues = parsed ? ruleSet.checkCitation(parsed) : [];
+
+    const row = document.createElement("div");
+    row.className = "bluebook-issue-row";
+
+    const label = document.createElement("label");
+    label.textContent = raw;
+    row.appendChild(label);
+
+    const result = document.createElement("p");
+    result.className = "helper-text";
+    if (!parsed) {
+      result.classList.add("issue-flagged");
+      result.textContent = "Could not parse this citation's structure.";
+    } else if (issues.length === 0) {
+      result.classList.add("issue-ok");
+      result.textContent = "No issues found.";
+    } else {
+      result.classList.add("issue-flagged");
+      result.textContent = issues
+        .map((issue) => `${issue.severity === "error" ? "Error" : "Warning"}: ${issue.message}`)
+        .join(" ");
+    }
+    row.appendChild(result);
+
+    fragment.appendChild(row);
+  });
+
+  container.appendChild(fragment);
 }
 
 function renderParentheticalEntries() {
