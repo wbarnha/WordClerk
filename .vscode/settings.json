@@ -3,6 +3,12 @@
       "javascript",
       "javascriptreact",
       "typescript"
-    ]
+    ],
+    "chat.tools.terminal.autoApprove": {
+      "/^npx office-addin-dev-settings --help$/": {
+        "approve": true,
+        "matchCommandLine": true
+      }
+    }
   }
   
