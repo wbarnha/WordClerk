@@ -1,4 +1,11 @@
-import { CitationProvider, CitationMatch, OpinionTextCapableProvider, ParsedCitation, ProviderCredentialField } from "./types";
+import {
+  CitationProvider,
+  CitationMatch,
+  OpinionExcerptResult,
+  OpinionTextCapableProvider,
+  ParsedCitation,
+  ProviderCredentialField,
+} from "./types";
 import { extractPageExcerpt, stripHtmlTags } from "./opinionTextExtractor";
 
 const API_BASE = "https://www.courtlistener.com/api/rest/v4";
@@ -130,33 +137,39 @@ export class CourtListenerProvider implements OpinionTextCapableProvider {
     return this.apiToken !== null;
   }
 
-  async fetchOpinionExcerpt(citation: ParsedCitation, targetPages: number[]): Promise<string | null> {
+  async fetchOpinionExcerpt(citation: ParsedCitation, targetPages: number[]): Promise<OpinionExcerptResult> {
     if (!this.apiToken || targetPages.length === 0) {
-      return null;
+      return { excerpt: null };
     }
 
     const text = citation.raw.trim();
     if (!text) {
-      return null;
+      return { excerpt: null };
     }
 
-    const clusterId = await this.resolveClusterId(text);
-    if (!clusterId) {
-      return null;
+    const clusterResult = await this.resolveClusterId(text);
+    if (clusterResult.rateLimited) {
+      return { excerpt: null, rateLimited: true };
+    }
+    if (!clusterResult.clusterId) {
+      return { excerpt: null };
     }
 
     let opinions: CourtListenerOpinion[];
     try {
-      const response = await fetch(`${API_BASE}/opinions/?cluster=${encodeURIComponent(clusterId)}`, {
+      const response = await fetch(`${API_BASE}/opinions/?cluster=${encodeURIComponent(clusterResult.clusterId)}`, {
         headers: { Authorization: `Token ${this.apiToken}` },
       });
+      if (response.status === 429) {
+        return { excerpt: null, rateLimited: true };
+      }
       if (!response.ok) {
-        return null;
+        return { excerpt: null };
       }
       const data: CourtListenerOpinionsResponse = await response.json();
       opinions = Array.isArray(data.results) ? data.results : [];
     } catch {
-      return null;
+      return { excerpt: null };
     }
 
     for (const opinion of opinions) {
@@ -168,35 +181,44 @@ export class CourtListenerProvider implements OpinionTextCapableProvider {
       }
       const excerpt = extractPageExcerpt(source, targetPages);
       if (excerpt) {
-        return excerpt;
+        return { excerpt };
       }
     }
 
-    return null;
+    return { excerpt: null };
   }
 
-  /** Resolves a citation to its CourtListener cluster ID by parsing it out of the citation-lookup result's absolute_url. */
-  private async resolveClusterId(text: string): Promise<string | null> {
+  /**
+   * Resolves a citation to its CourtListener cluster ID by parsing it out of the citation-lookup
+   * result's absolute_url. CourtListener's documented default throttle is a modest 5 requests/
+   * minute, 50/hour, 125/day (https://www.courtlistener.com/help/api/rest/) -- fetchOpinionExcerpt
+   * makes two requests per citation, so a 429 here is expected to happen in normal use on a
+   * document with several pincite citations, not just as a rare edge case.
+   */
+  private async resolveClusterId(text: string): Promise<{ clusterId: string | null; rateLimited?: boolean }> {
     let response: Response;
     try {
       response = await this.request(this.apiToken, text);
     } catch {
-      return null;
+      return { clusterId: null };
     }
 
+    if (response.status === 429) {
+      return { clusterId: null, rateLimited: true };
+    }
     if (!response.ok) {
-      return null;
+      return { clusterId: null };
     }
 
     let results: CourtListenerCitationResult[];
     try {
       results = await response.json();
     } catch {
-      return null;
+      return { clusterId: null };
     }
 
     if (!Array.isArray(results)) {
-      return null;
+      return { clusterId: null };
     }
 
     for (const result of results) {
@@ -206,11 +228,11 @@ export class CourtListenerProvider implements OpinionTextCapableProvider {
       const absoluteUrl = result.clusters[0].absolute_url;
       const idMatch = absoluteUrl && absoluteUrl.match(/^\/opinion\/(\d+)\//);
       if (idMatch) {
-        return idMatch[1];
+        return { clusterId: idMatch[1] };
       }
     }
 
-    return null;
+    return { clusterId: null };
   }
 
   private request(token: string | null, text: string): Promise<Response> {

@@ -43,31 +43,38 @@ describeIfLiveToken('CourtListenerProvider against the real API (opt-in, local o
 
     // Norfolk & Western Railway Co. v. Liepelt, 444 U.S. 490, 491 (1980) -- already used as the
     // fixture citation across the rest of this project's tests.
-    const excerpt = await provider.fetchOpinionExcerpt(
+    const { excerpt, rateLimited } = await provider.fetchOpinionExcerpt(
       { raw: 'Norfolk & W. Ry. Co. v. Liepelt, 444 U.S. 490 (1980)' },
       [491]
     );
 
+    if (rateLimited) {
+      throw new Error('CourtListener rate-limited this test run -- wait a minute and re-run npm run test:live.');
+    }
     expect(excerpt).not.toBeNull();
     expect(excerpt).toContain('income taxes');
   });
 
-  test('fetchOpinionExcerpt returns null for a citation that does not exist', async () => {
+  test('fetchOpinionExcerpt returns null (not rate-limited) for a citation that does not exist', async () => {
     const provider = new CourtListenerProvider();
     await provider.authenticate({ apiToken: LIVE_TOKEN as string });
 
-    const excerpt = await provider.fetchOpinionExcerpt({ raw: '999 U.S. 999' }, [999]);
+    const { excerpt, rateLimited } = await provider.fetchOpinionExcerpt({ raw: '999 U.S. 999' }, [999]);
     expect(excerpt).toBeNull();
+    expect(rateLimited).toBeFalsy();
   });
 
   test('fetchOpinionExcerpt returns null when no page marker matches the requested page', async () => {
     const provider = new CourtListenerProvider();
     await provider.authenticate({ apiToken: LIVE_TOKEN as string });
 
-    const excerpt = await provider.fetchOpinionExcerpt(
+    const { excerpt, rateLimited } = await provider.fetchOpinionExcerpt(
       { raw: 'Norfolk & W. Ry. Co. v. Liepelt, 444 U.S. 490 (1980)' },
       [999999]
     );
+    if (rateLimited) {
+      throw new Error('CourtListener rate-limited this test run -- wait a minute and re-run npm run test:live.');
+    }
     expect(excerpt).toBeNull();
   });
 });

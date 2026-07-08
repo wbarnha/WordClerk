@@ -128,6 +128,7 @@
             <p class="ms-font-l">Finds case citations that cite a page beyond the first page of the opinion &mdash; a single pincite, a list of pages, or a page range &mdash; and embeds the cited court opinion text as a Word comment on that citation.</p>
             <p class="helper-text">Comments are collapsed by default and expand when clicked, so the excerpt stays out of the way until you need it; use Word's own comment pane to review, reply to, or resolve them.</p>
             <p class="helper-text">Requires a provider that can supply full opinion text, not just a hyperlink. Currently only CourtListener supports this, and it requires connecting an API token first (Manage Hyperlinks tab &rarr; Online Lookup &rarr; Connect) &mdash; this feature cannot work anonymously, unlike CourtListener's basic hyperlinking.</p>
+            <p class="helper-text">CourtListener's default rate limit is modest (a handful of requests per minute), and each pincite citation here costs two requests. On a document with several of them, later citations may come back rate-limited &mdash; just wait a minute and click the button again to pick up the rest.</p>
 
             <label class="ms-Label" for="embed-text-provider-select">Provider</label>
             <select id="embed-text-provider-select" class="url-input"></select>

@@ -281,7 +281,7 @@ describe('CourtListenerProvider', () => {
     test('is not ready, and returns null, without an API token', async () => {
       const provider = new CourtListenerProvider();
       expect(provider.isReadyForOpinionText()).toBe(false);
-      await expect(provider.fetchOpinionExcerpt({ raw: EXAMPLE_CITATION }, [705])).resolves.toBeNull();
+      await expect(provider.fetchOpinionExcerpt({ raw: EXAMPLE_CITATION }, [705])).resolves.toEqual({ excerpt: null });
     });
 
     test('is ready once connected with an API token', async () => {
@@ -298,7 +298,7 @@ describe('CourtListenerProvider', () => {
       await provider.authenticate({ apiToken: 'secret-token' });
       mockFetch.mockClear();
 
-      await expect(provider.fetchOpinionExcerpt({ raw: EXAMPLE_CITATION }, [])).resolves.toBeNull();
+      await expect(provider.fetchOpinionExcerpt({ raw: EXAMPLE_CITATION }, [])).resolves.toEqual({ excerpt: null });
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
@@ -332,7 +332,7 @@ describe('CourtListenerProvider', () => {
         }),
       });
 
-      const excerpt = await provider.fetchOpinionExcerpt({ raw: EXAMPLE_CITATION }, [490]);
+      const { excerpt } = await provider.fetchOpinionExcerpt({ raw: EXAMPLE_CITATION }, [490]);
       expect(excerpt).toContain('Holding starts here.');
 
       expect(mockFetch).toHaveBeenCalledTimes(3);
@@ -356,8 +356,53 @@ describe('CourtListenerProvider', () => {
         json: async () => [{ citation: '1 U.S. 200', status: 404, clusters: [] }],
       });
 
-      await expect(provider.fetchOpinionExcerpt({ raw: '1 U.S. 200' }, [200])).resolves.toBeNull();
+      await expect(provider.fetchOpinionExcerpt({ raw: '1 U.S. 200' }, [200])).resolves.toEqual({ excerpt: null });
       expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    test('reports rateLimited (not a plain miss) when citation-lookup returns 429', async () => {
+      const mockFetch = jest.fn();
+      global.fetch = mockFetch as unknown as typeof fetch;
+
+      const provider = new CourtListenerProvider();
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => [] });
+      await provider.authenticate({ apiToken: 'secret-token' });
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 429, json: async () => ({ detail: 'Request was throttled.' }) });
+
+      await expect(provider.fetchOpinionExcerpt({ raw: EXAMPLE_CITATION }, [490])).resolves.toEqual({
+        excerpt: null,
+        rateLimited: true,
+      });
+      // Only the citation-lookup call should fire -- no point calling the opinions endpoint too.
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    test('reports rateLimited when the opinions-by-cluster request returns 429', async () => {
+      const mockFetch = jest.fn();
+      global.fetch = mockFetch as unknown as typeof fetch;
+
+      const provider = new CourtListenerProvider();
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => [] });
+      await provider.authenticate({ apiToken: 'secret-token' });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => [
+          {
+            citation: '444 U.S. 490',
+            status: 200,
+            clusters: [{ absolute_url: '/opinion/108713/norfolk-western-railway-co-v-liepelt/' }],
+          },
+        ],
+      });
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 429, json: async () => ({ detail: 'Request was throttled.' }) });
+
+      await expect(provider.fetchOpinionExcerpt({ raw: EXAMPLE_CITATION }, [490])).resolves.toEqual({
+        excerpt: null,
+        rateLimited: true,
+      });
     });
 
     test('returns null when the opinion text has no marker for the requested page', async () => {
@@ -385,7 +430,7 @@ describe('CourtListenerProvider', () => {
         json: async () => ({ results: [{ plain_text: '*489 Intro.\n*490 Holding starts here.' }] }),
       });
 
-      await expect(provider.fetchOpinionExcerpt({ raw: EXAMPLE_CITATION }, [999])).resolves.toBeNull();
+      await expect(provider.fetchOpinionExcerpt({ raw: EXAMPLE_CITATION }, [999])).resolves.toEqual({ excerpt: null });
     });
 
     test('falls back to stripped HTML when plain_text is unavailable', async () => {
@@ -415,7 +460,7 @@ describe('CourtListenerProvider', () => {
         }),
       });
 
-      const excerpt = await provider.fetchOpinionExcerpt({ raw: EXAMPLE_CITATION }, [490]);
+      const { excerpt } = await provider.fetchOpinionExcerpt({ raw: EXAMPLE_CITATION }, [490]);
       expect(excerpt).toContain('Holding from HTML.');
     });
   });

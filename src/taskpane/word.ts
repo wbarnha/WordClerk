@@ -39,7 +39,18 @@ type EmbedTextResult = { raw: string; embedded: boolean; reason: string | null }
 
 // Prefix on every comment WordClerk inserts via "Embed cited opinion text", so "Remove embedded
 // text" can find-and-delete only its own comments without touching any the user added by hand.
+// The citation's raw text is embedded right after the marker (see buildEmbeddedCommentContent)
+// so a re-run can tell which citations already have a comment and skip them, instead of
+// re-fetching (wasteful given CourtListener's rate limit) and inserting a duplicate.
 const EMBEDDED_TEXT_COMMENT_MARKER = "[WordClerk embedded citation text]";
+
+function buildEmbeddedCommentContent(raw: string, excerpt: string): string {
+  return `${EMBEDDED_TEXT_COMMENT_MARKER} ${raw}\n\n${excerpt}`;
+}
+
+function citationHasEmbeddedComment(commentContent: string, raw: string): boolean {
+  return commentContent === `${EMBEDDED_TEXT_COMMENT_MARKER} ${raw}` || commentContent.startsWith(`${EMBEDDED_TEXT_COMMENT_MARKER} ${raw}\n`);
+}
 
 // A source .docx is just a zip file; without limits, a small maliciously-crafted zip can
 // decompress to a huge amount of data in memory ("zip bomb") and hang or crash the taskpane.
@@ -1138,22 +1149,39 @@ async function embedCitedOpinionText() {
         return;
       }
 
+      // Citations that already have a WordClerk comment are skipped rather than re-fetched --
+      // both to avoid inserting a duplicate comment and to conserve CourtListener's rate limit
+      // when re-running after a previous run got partially rate-limited.
+      const existingComments = context.document.body.getComments();
+      existingComments.load("items");
+      await context.sync();
+      existingComments.items.forEach((comment) => comment.load("content"));
+      await context.sync();
+      const existingCommentContents = existingComments.items.map((comment) => comment.content);
+
       const results: EmbedTextResult[] = [];
 
       // Looked up one citation at a time (not in parallel), same reasoning as the other
       // provider-backed workflows: stay within the provider's rate limits.
       for (const { raw, parsed } of pinciteCitations) {
+        if (existingCommentContents.some((content) => citationHasEmbeddedComment(content, raw))) {
+          results.push({ raw, embedded: true, reason: null });
+          continue;
+        }
+
         const targetPages = expandPincitePages(parsed.pincite as string);
-        const excerpt = await provider.fetchOpinionExcerpt(parsed, targetPages);
+        const { excerpt, rateLimited } = await provider.fetchOpinionExcerpt(parsed, targetPages);
 
         if (!excerpt) {
-          results.push({
-            raw,
-            embedded: false,
-            reason: provider.isReadyForOpinionText()
-              ? "Opinion text not found, or has no page markers matching this pincite."
-              : `Connect to ${provider.name} with an API token first.`,
-          });
+          let reason: string;
+          if (rateLimited) {
+            reason = `${provider.name} rate-limited this request -- wait a minute and try the remaining citations again.`;
+          } else if (!provider.isReadyForOpinionText()) {
+            reason = `Connect to ${provider.name} with an API token first.`;
+          } else {
+            reason = "Opinion text not found, or has no page markers matching this pincite.";
+          }
+          results.push({ raw, embedded: false, reason });
           continue;
         }
 
@@ -1169,7 +1197,7 @@ async function embedCitedOpinionText() {
         // A Word comment is collapsed by default (just a margin icon) and expands on click --
         // exactly the "embedded, expandable/collapsible" behavior this feature is for, using
         // Word's own native UI instead of a custom widget.
-        searchResults.items[0].insertComment(`${EMBEDDED_TEXT_COMMENT_MARKER}\n\n${excerpt}`);
+        searchResults.items[0].insertComment(buildEmbeddedCommentContent(raw, excerpt));
         await context.sync();
         results.push({ raw, embedded: true, reason: null });
       }
