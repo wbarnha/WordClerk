@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const { marked } = require('marked');
 
 const repoRoot = path.resolve(__dirname, '..');
 const readmePath = path.join(repoRoot, 'README.md');
@@ -20,7 +19,7 @@ function githubSlug(text) {
     .replace(/ /g, '-');
 }
 
-function buildRenderer() {
+function buildRenderer(marked) {
   const renderer = new marked.Renderer();
   renderer.heading = function heading({ tokens, depth, text }) {
     const html = this.parser.parseInline(tokens);
@@ -172,7 +171,7 @@ ${bodyHtml}
 `;
 }
 
-function main() {
+async function main() {
   if (!fs.existsSync(readmePath)) {
     throw new Error(`README not found: ${readmePath}`);
   }
@@ -181,10 +180,17 @@ function main() {
     throw new Error(`dist/ not found -- run the webpack build first: ${distDir}`);
   }
 
+  // marked is published ESM-only; dynamic import() works from CommonJS on Node 18 (CI's build
+  // job), unlike require(), which throws ERR_REQUIRE_ESM there.
+  const { marked } = await import('marked');
+
   const markdown = fs.readFileSync(readmePath, 'utf8');
-  const bodyHtml = rewriteRelativeLinks(marked.parse(markdown, { renderer: buildRenderer() }));
+  const bodyHtml = rewriteRelativeLinks(marked.parse(markdown, { renderer: buildRenderer(marked) }));
   fs.writeFileSync(outputPath, renderPage(bodyHtml), 'utf8');
   console.log('Wrote', outputPath);
 }
 
-main();
+main().catch((err) => {
+  console.error(err instanceof Error ? err.message : err);
+  process.exit(1);
+});
