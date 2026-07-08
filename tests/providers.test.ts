@@ -316,6 +316,57 @@ describe('CourtListenerProvider', () => {
     await provider.authenticate({ apiToken: 'secret-token' });
     expect(provider.isAuthenticated()).toBe(true);
   });
+
+  describe('rate-limit awareness (supportsRateLimitAwareness)', () => {
+    test('wasLastRequestRateLimited() is false before any lookup', () => {
+      expect(new CourtListenerProvider().wasLastRequestRateLimited()).toBe(false);
+    });
+
+    test('reports rateLimited (not a plain miss) when the API returns 429', async () => {
+      const mockFetch = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => [] });
+      global.fetch = mockFetch as unknown as typeof fetch;
+      const provider = new CourtListenerProvider();
+      await provider.authenticate({ apiToken: 'secret-token' });
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 429, json: async () => ({ detail: 'Request was throttled.' }) });
+
+      const match = await provider.lookupCitation({ raw: EXAMPLE_CITATION });
+      expect(match).toBeNull();
+      expect(provider.wasLastRequestRateLimited()).toBe(true);
+    });
+
+    test('resets wasLastRequestRateLimited() on a subsequent successful lookup', async () => {
+      const mockFetch = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => [] });
+      global.fetch = mockFetch as unknown as typeof fetch;
+      const provider = new CourtListenerProvider();
+      await provider.authenticate({ apiToken: 'secret-token' });
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 429, json: async () => ({ detail: 'Request was throttled.' }) });
+      await provider.lookupCitation({ raw: EXAMPLE_CITATION });
+      expect(provider.wasLastRequestRateLimited()).toBe(true);
+
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => [] });
+      await provider.lookupCitation({ raw: EXAMPLE_CITATION });
+      expect(provider.wasLastRequestRateLimited()).toBe(false);
+    });
+
+    test('a plain 404/not-found response does not report rateLimited', async () => {
+      const mockFetch = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => [] });
+      global.fetch = mockFetch as unknown as typeof fetch;
+      const provider = new CourtListenerProvider();
+      await provider.authenticate({ apiToken: 'secret-token' });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => [{ citation: '1 U.S. 200', status: 404, clusters: [] }],
+      });
+
+      const match = await provider.lookupCitation({ raw: '1 U.S. 200' });
+      expect(match).toBeNull();
+      expect(provider.wasLastRequestRateLimited()).toBe(false);
+    });
+  });
 });
 
 describe('EnterpriseCitationProvider (LexisNexis as representative)', () => {

@@ -1,4 +1,4 @@
-import { CitationProvider, CitationMatch, ParsedCitation, ProviderCredentialField } from "./types";
+import { CitationMatch, ParsedCitation, ProviderCredentialField, RateLimitAwareProvider } from "./types";
 
 const API_BASE = "https://www.courtlistener.com/api/rest/v4";
 const SITE_ORIGIN = "https://www.courtlistener.com";
@@ -21,7 +21,7 @@ interface CourtListenerCitationResult {
  * this endpoint, despite what some documentation examples might suggest). See:
  * https://www.courtlistener.com/help/api/rest/v4/citation-lookup/
  */
-export class CourtListenerProvider implements CitationProvider {
+export class CourtListenerProvider implements RateLimitAwareProvider {
   readonly id = "courtlistener";
   readonly name = "CourtListener";
   readonly description = "Free Law Project's case-law search. Requires a free CourtListener account and API token.";
@@ -37,9 +37,19 @@ export class CourtListenerProvider implements CitationProvider {
   ];
 
   private apiToken: string | null = null;
+  // CourtListener's documented default rate limit is a modest 5 requests/minute (50/hour,
+  // 125/day) -- https://www.courtlistener.com/help/api/rest/ -- so hitting it partway through
+  // scanning a document with several dozen citations is expected in normal use, not an edge
+  // case. This tracks whether the most recent lookupCitation() call's null result was actually
+  // a 429, so callers can tell "rate-limited, retry later" apart from "genuinely not found".
+  private lastRequestWasRateLimited = false;
 
   isAuthenticated(): boolean {
     return this.apiToken !== null;
+  }
+
+  wasLastRequestRateLimited(): boolean {
+    return this.lastRequestWasRateLimited;
   }
 
   async authenticate(credentials: Record<string, string>): Promise<void> {
@@ -62,6 +72,8 @@ export class CourtListenerProvider implements CitationProvider {
   }
 
   async lookupCitation(citation: ParsedCitation): Promise<CitationMatch | null> {
+    this.lastRequestWasRateLimited = false;
+
     if (!this.apiToken) {
       return null;
     }
@@ -75,6 +87,11 @@ export class CourtListenerProvider implements CitationProvider {
     try {
       response = await this.request(this.apiToken, text);
     } catch {
+      return null;
+    }
+
+    if (response.status === 429) {
+      this.lastRequestWasRateLimited = true;
       return null;
     }
 
