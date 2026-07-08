@@ -4,6 +4,7 @@
 
 <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://appsforoffice.microsoft.com; style-src 'self' https://res-1.cdn.office.net; font-src https://res-1.cdn.office.net; img-src 'self' data:; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none';" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>WordClerk</title>
@@ -21,7 +22,7 @@
     <section id="sideload-msg" class="ms-welcome__main">
         <h2 class="ms-font-xl">Please <a target="_blank" href="https://learn.microsoft.com/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing">sideload</a> your add-in to see the task pane.</h2>
     </section>
-    <main id="app-body" class="ms-welcome__main" style="display: none;">
+    <main id="app-body" class="ms-welcome__main hidden">
         <div class="tab-bar" role="tablist" aria-label="Citation workflows">
             <button id="case-law-tab" class="tab-button active" role="tab" aria-selected="true">Case Law</button>
             <button id="non-patent-tab" class="tab-button" role="tab" aria-selected="false">Non-patent Literature</button>
