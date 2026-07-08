@@ -41,7 +41,7 @@ Prerequisites
 Install dependencies:
 
 ```bash
-cd "c:\Users\willi\WordClerk"
+cd WordClerk
 npm install
 ```
 
