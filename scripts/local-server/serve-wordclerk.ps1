@@ -44,6 +44,14 @@ $mimeTypes = @{
     '.map'  = 'application/json; charset=utf-8'
 }
 
+# Same policy as the <meta> CSP tags baked into taskpane.html/commands.html, plus
+# frame-ancestors 'none' (only enforceable via header, not <meta>) to block this content from
+# being embedded in an iframe on another origin.
+$contentSecurityPolicy = "default-src 'none'; script-src 'self' https://appsforoffice.microsoft.com; " +
+    "style-src 'self' https://res-1.cdn.office.net; font-src https://res-1.cdn.office.net; " +
+    "img-src 'self' data:; connect-src 'none'; object-src 'none'; frame-src 'none'; " +
+    "frame-ancestors 'none'; base-uri 'none';"
+
 function Test-Authorized($request) {
     $queryKey = $request.QueryString['k']
     if ($queryKey -and $queryKey -eq $Secret) {
@@ -102,6 +110,9 @@ try {
                 $contentType = 'application/octet-stream'
             }
             $response.ContentType = $contentType
+            if ($ext -eq '.html') {
+                $response.Headers.Add('Content-Security-Policy', $contentSecurityPolicy)
+            }
 
             $bytes = [System.IO.File]::ReadAllBytes($resolvedFilePath)
             $response.ContentLength64 = $bytes.Length
