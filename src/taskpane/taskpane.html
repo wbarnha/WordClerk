@@ -26,6 +26,7 @@
         <div class="tab-bar" role="tablist" aria-label="Citation workflows">
             <button id="case-law-tab" class="tab-button active" role="tab" aria-selected="true">Case Law</button>
             <button id="non-patent-tab" class="tab-button" role="tab" aria-selected="false">Non-patent Literature</button>
+            <button id="online-lookup-tab" class="tab-button" role="tab" aria-selected="false">Online Lookup</button>
         </div>
 
         <section id="case-law-panel" class="tab-panel active" role="tabpanel">
@@ -49,6 +50,26 @@
             <div class="button-row bottom-actions">
                 <button id="add-parenthetical-hyperlinks" class="ms-Button ms-Button--primary">Add Hyperlinks</button>
                 <button id="remove-parenthetical-hyperlinks" class="ms-Button">Remove Hyperlinks</button>
+            </div>
+        </section>
+
+        <section id="online-lookup-panel" class="tab-panel" role="tabpanel">
+            <p class="ms-font-l">Instead of parsing a source file, look citations up live through a case-law API and hyperlink only the ones that resolve to an exact case.</p>
+            <p class="helper-text">Example: "Norfolk &amp; W. Ry. Co. v. Liepelt, 444 U.S. 490 (U.S.Ill., 1980)" is sent to the selected provider. If it immediately resolves to one case, a hyperlink is added; otherwise that citation is left untouched and the scan moves on.</p>
+
+            <label class="ms-Label" for="provider-select">Lookup provider</label>
+            <select id="provider-select" class="url-input"></select>
+            <p id="provider-description" class="helper-text"></p>
+
+            <div id="provider-credential-fields" class="citation-list"></div>
+            <div class="button-row">
+                <button id="provider-connect" class="ms-Button">Connect</button>
+                <button id="provider-disconnect" class="ms-Button">Disconnect</button>
+            </div>
+            <p id="provider-auth-status" class="helper-text">Not connected.</p>
+
+            <div class="button-row bottom-actions">
+                <button id="apply-online-hyperlinks" class="ms-Button ms-Button--primary">Scan &amp; hyperlink via API</button>
             </div>
         </section>
 
