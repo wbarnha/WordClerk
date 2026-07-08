@@ -56,20 +56,29 @@ export function extractPageExcerpt(fullText: string, targetPages: number[]): str
   return segments.length > 0 ? segments.join("\n\n[...]\n\n") : null;
 }
 
+const HTML_ENTITY_REPLACEMENTS: Record<string, string> = {
+  "&nbsp;": " ",
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+};
+
 /**
  * Strips HTML tags for opinions that only have an HTML text field (no plain_text). Blunt but
  * adequate here: the output only needs to be readable inside a Word comment, never re-rendered
  * as HTML, so there's no injection risk in being lossy about markup.
+ *
+ * Entities are decoded in a single combined-regex pass (not sequential .replace() calls) so an
+ * earlier substitution can never create a new match for a later one -- e.g. decoding "&amp;"
+ * before "&lt;" would turn a literal "&amp;lt;" into "&lt;" and then wrongly decode that into
+ * "<", double-unescaping content that was never meant to become a tag-like character.
  */
 export function stripHtmlTags(html: string): string {
   return html
     .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;|&amp;|&lt;|&gt;|&quot;|&#39;/gi, (match) => HTML_ENTITY_REPLACEMENTS[match.toLowerCase()] ?? match)
     .replace(/\s+/g, " ")
     .trim();
 }

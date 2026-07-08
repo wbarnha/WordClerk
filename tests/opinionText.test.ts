@@ -90,4 +90,10 @@ describe('stripHtmlTags', () => {
   test('returns an empty string for empty input', () => {
     expect(stripHtmlTags('')).toBe('');
   });
+
+  test('does not double-unescape a literal "&amp;lt;" into "<"', () => {
+    // Regression test: decoding &amp; before &lt; in separate passes would turn a literal
+    // "&amp;lt;" (someone's escaped "&lt;") into "&lt;" and then wrongly decode that into "<".
+    expect(stripHtmlTags('&amp;lt;')).toBe('&lt;');
+  });
 });
