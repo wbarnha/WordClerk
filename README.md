@@ -118,13 +118,29 @@ Because the three enterprise integrations are contract-gated and provisioned per
 The **Bluebook Check** tab scans the current document's case citations for common Bluebook formatting problems and lists any it finds, per citation. It's a mechanical checker, not the rulebook: it verifies conventions like
 
 - `"v."` is used (not `"v"` or `"vs."`) between party names,
-- the reporter series uses the ordinal abbreviations `"2d"`/`"3d"` rather than `"2nd"`/`"3rd"`,
-- a decision year is present in the parenthetical, and
-- a court abbreviation is present for any reporter other than U.S. Reports (`"U.S."`, where the Supreme Court is implied),
+- the reporter abbreviation is a recognized, correctly-formatted form (see "Vendored reference data" below) — including the ordinal typo `"2nd"`/`"3rd"` instead of `"2d"`/`"3d"`,
+- every full word in the case name that Table T6 abbreviates is actually abbreviated (e.g. `"Company"` → `"Co."`, `"Association"` → `"Ass'n"`),
+- a decision year is present in the parenthetical,
+- a court abbreviation is present for any reporter other than U.S. Reports (`"U.S."`, where the Supreme Court is implied), and
+- the court/jurisdiction parenthetical uses the Table T10 state abbreviation rather than the spelled-out state name (e.g. `"California"` → `"Cal."`),
 
 plus a small set of edition-specific case-name abbreviations (see below). **It does not check every Bluebook rule** (typeface/italics, signal usage, pinpoint-citation style for non-case authorities, etc.) and isn't a substitute for the actual rulebook — treat a clean result as "no obvious mechanical problems," not "Bluebook-perfect."
 
 Each citation in the results list is clickable: clicking it searches the document for that exact citation text and selects it, which moves Word's view to show where it actually appears — no manual scrolling/searching needed to find a flagged citation.
+
+### Vendored reference data
+
+The reporter (Table T1), case-name (Table T6), and state (Table T10) abbreviation checks are powered by [reporters-db](https://github.com/freelawproject/reporters-db) (BSD-2-Clause), Free Law Project's open, actively-maintained abbreviation database — the same one that powers CourtListener's own citation parser (`eyecite`). As of this writing it covers **1,342 valid reporter forms + 2,250 known malformed variations**, **231 case-name abbreviations**, and all 50 states.
+
+This data is fetched and trimmed **once, at development time**, by [scripts/generate-bluebook-data.js](scripts/generate-bluebook-data.js) into `src/taskpane/bluebook/generated/*.ts` — those generated files are committed to the repo like any other source file. **The add-in itself makes no network call to fetch this data**; it's bundled into the JS just like the hand-written rule-sets, preserving the zero-network-calls-by-default architecture (see [Security & IT review](#security--it-review)). To pick up upstream updates, run:
+
+```bash
+npm run bluebook:update-data
+```
+
+and commit the diff.
+
+**Reporter-format checking distinguishes two categories** to avoid false positives: a reporter's independently valid *edition* forms (e.g. `"A."`, `"A.2d"`, `"A.3d"` are all correct — different chronological editions of the same series, not errors) versus its known *variations* (malformed spellings like `"A2d"` or `"Atl.2d"`, which are flagged with the specific correct form). An ordinal typo (`"2nd"`/`"3rd"`) is caught generically for every reporter, not just the ones reporters-db happens to have recorded a variation entry for.
 
 Like the citation lookup providers, Bluebook editions are plugins implementing `BluebookRuleSet` in [src/taskpane/bluebook/types.ts](src/taskpane/bluebook/types.ts) and registering with `bluebookRuleSetRegistry` in [src/taskpane/bluebook/index.ts](src/taskpane/bluebook/index.ts). Pick an edition from the dropdown on the Bluebook Check tab; each is checked independently and adding a new edition (or a firm/journal-specific house style) means implementing the interface and registering an instance.
 

@@ -103,3 +103,69 @@ describe('edition-specific case-name abbreviation checks', () => {
     }
   });
 });
+
+describe('reporter abbreviation checks (vendored reporters-db Table T1 data)', () => {
+  test('a valid reporter edition form is not flagged', () => {
+    const issues = checkCommonCaseCitationRules(parseOrThrow('Smith v. Jones, 123 A.2d 456 (Del. 2010)'));
+    expect(issues.some((i) => i.ruleId.startsWith('reporter-'))).toBe(false);
+  });
+
+  test('flags a known non-standard reporter form with the correct suggestion', () => {
+    const issues = checkCommonCaseCitationRules(parseOrThrow('Smith v. Jones, 123 F. 2d 456 (2d Cir. 2010)'));
+    const flagged = issues.find((i) => i.ruleId === 'reporter-nonstandard-form');
+    expect(flagged).toBeDefined();
+    expect(flagged?.message).toContain('F.2d');
+  });
+
+  test('flags an ordinal-form reporter typo generically, not just the ~13 reporters reporters-db happens to list', () => {
+    const issues = checkCommonCaseCitationRules(parseOrThrow('Smith v. Jones, 123 A.2nd 456 (Del. 2010)'));
+    const flagged = issues.find((i) => i.ruleId === 'reporter-ordinal');
+    expect(flagged).toBeDefined();
+    expect(flagged?.message).toContain('A.2d');
+  });
+
+  test('flags a completely unrecognized reporter as a warning, not an error', () => {
+    const issues = checkCommonCaseCitationRules(parseOrThrow('Smith v. Jones, 123 Not.A.Real.Reporter 456 (2010)'));
+    const flagged = issues.find((i) => i.ruleId === 'reporter-unrecognized');
+    expect(flagged).toBeDefined();
+    expect(flagged?.severity).toBe('warning');
+  });
+});
+
+describe('full case-name abbreviation table (vendored reporters-db data, all editions)', () => {
+  const CASE_NAME_WITH_COMMON_ABBREVIATION = 'Smith v. Acme Company, 123 F.3d 456 (9th Cir. 2010)';
+
+  test('flags a word from the full table for the 20th edition too (not just the T6/T13.2 merger words)', () => {
+    const issues = new Bluebook20thEdition().checkCitation(parseOrThrow(CASE_NAME_WITH_COMMON_ABBREVIATION));
+    const flagged = issues.find((i) => i.ruleId === 'case-name-abbreviation');
+    expect(flagged).toBeDefined();
+    expect(flagged?.message).toContain('Co.');
+  });
+
+  test('flags the same word for the 22nd edition', () => {
+    const issues = new Bluebook22ndEdition().checkCitation(parseOrThrow(CASE_NAME_WITH_COMMON_ABBREVIATION));
+    expect(issues.some((i) => i.ruleId === 'case-name-abbreviation')).toBe(true);
+  });
+
+  test('does not double-flag a T6/T13.2 merger word under both the full table and the merger-specific check', () => {
+    const issues = new Bluebook21stEdition().checkCitation(
+      parseOrThrow('Sierra Club v. Metro Environment Laboratory, 500 F.3d 100 (9th Cir. 2019)')
+    );
+    const fullTableFlags = issues.filter((i) => i.ruleId === 'case-name-abbreviation' && i.message.includes('Environment'));
+    expect(fullTableFlags.length).toBe(0);
+  });
+});
+
+describe('court/jurisdiction state abbreviation checks (vendored reporters-db Table T10 data)', () => {
+  test('flags a spelled-out state name in the court parenthetical', () => {
+    const issues = checkCommonCaseCitationRules(parseOrThrow('Smith v. Jones, 123 Cal. Rptr. 456 (California 2010)'));
+    const flagged = issues.find((i) => i.ruleId === 'court-state-not-abbreviated');
+    expect(flagged).toBeDefined();
+    expect(flagged?.message).toContain('Cal.');
+  });
+
+  test('does not flag an already-correct state abbreviation', () => {
+    const issues = checkCommonCaseCitationRules(parseOrThrow('Smith v. Jones, 123 Cal. Rptr. 456 (Cal. 2010)'));
+    expect(issues.some((i) => i.ruleId === 'court-state-not-abbreviated')).toBe(false);
+  });
+});
