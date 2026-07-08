@@ -164,6 +164,20 @@ A Word comment is collapsed to a small icon in the margin by default and expands
 
 Extracting the exact cited page from an opinion's full text is a best-effort heuristic, not a guarantee: it looks for "star pagination" markers (e.g. `*705`) — the standard convention Westlaw and most public-domain legal text corpora use to mark where each print-reporter page begins — and an opinion's text isn't required to include them (it depends on the opinion's original source). If no markers are found, or none match the requested page, that citation is skipped and reported as such rather than guessing at an excerpt. See [opinionTextExtractor.ts](src/taskpane/providers/opinionTextExtractor.ts) and [pincitePages.ts](src/taskpane/providers/pincitePages.ts) for the extraction and page-range-expansion logic, both covered by unit tests against synthetic fixture text.
 
+### Testing against the real CourtListener API locally
+
+`npm test` never makes a network call — everything above is verified with mocked `fetch` responses. If you want to sanity-check the real integration (CourtListener's exact field names, HTML markup, and star-pagination conventions can change upstream independently of this repo), there's an opt-in live test suite that's skipped automatically unless you provide a token:
+
+```bash
+# macOS / Linux / Git Bash
+COURTLISTENER_API_TOKEN=your-token npm run test:live
+
+# Windows PowerShell
+$env:COURTLISTENER_API_TOKEN="your-token"; npm run test:live
+```
+
+Get a free token from [CourtListener's API documentation](https://www.courtlistener.com/help/api/rest/#authentication). **Never commit a token or put it in a file** — pass it as an environment variable for the one command, the same way you would any other secret. Without `COURTLISTENER_API_TOKEN` set, `npm test` and `npm run test:live` both skip this file entirely (see [courtListener.live.test.ts](tests/courtListener.live.test.ts)), so CI and every other contributor's local run are completely unaffected.
+
 ## Security & IT review
 
 ### One-page summary
