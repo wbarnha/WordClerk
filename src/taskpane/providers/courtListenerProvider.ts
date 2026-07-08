@@ -16,37 +16,37 @@ interface CourtListenerCitationResult {
 
 /**
  * Free Law Project's CourtListener (courtlistener.com) citation-lookup API.
- * Public and free to use; an API token is optional but raises the (fairly
- * low) anonymous rate limit. See:
+ * Free to use, but requires an API token -- as of 2026, CourtListener's v4 API returns 401 for
+ * an unauthenticated citation-lookup request (confirmed live; there is no anonymous tier for
+ * this endpoint, despite what some documentation examples might suggest). See:
  * https://www.courtlistener.com/help/api/rest/v4/citation-lookup/
  */
 export class CourtListenerProvider implements CitationProvider {
   readonly id = "courtlistener";
   readonly name = "CourtListener";
-  readonly description =
-    "Free Law Project's free, public case-law search. Works without credentials; an optional API token raises the rate limit.";
-  readonly requiresAuth = false;
+  readonly description = "Free Law Project's case-law search. Requires a free CourtListener account and API token.";
+  readonly requiresAuth = true;
   readonly credentialFields: ProviderCredentialField[] = [
     {
       key: "apiToken",
-      label: "API token (optional)",
+      label: "API token",
       type: "password",
       placeholder: "Paste your CourtListener API token",
-      required: false,
+      required: true,
     },
   ];
 
   private apiToken: string | null = null;
 
   isAuthenticated(): boolean {
-    return true;
+    return this.apiToken !== null;
   }
 
   async authenticate(credentials: Record<string, string>): Promise<void> {
     const token = (credentials.apiToken || "").trim();
     if (!token) {
       this.apiToken = null;
-      return;
+      throw new Error("CourtListener requires an API token.");
     }
 
     const response = await this.request(token, "1 U.S. 1");
@@ -62,6 +62,10 @@ export class CourtListenerProvider implements CitationProvider {
   }
 
   async lookupCitation(citation: ParsedCitation): Promise<CitationMatch | null> {
+    if (!this.apiToken) {
+      return null;
+    }
+
     const text = citation.raw.trim();
     if (!text) {
       return null;
