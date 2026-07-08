@@ -61,6 +61,19 @@ function rewriteCdnReferences(html) {
   for (const asset of VENDOR_ASSETS) {
     result = result.split(asset.url).join(`vendor/${asset.localName}`);
   }
+  // The CSP <meta> tag allowlists the CDN origins by hostname (CSP source lists are origins,
+  // not full paths, so the string substitution above doesn't touch them) -- those become
+  // unnecessary permissions once vendored locally, so strip them from the policy too rather
+  // than leaving a stale allowlist entry for a domain this build never actually loads from.
+  for (const asset of VENDOR_ASSETS) {
+    const origin = new URL(asset.url).origin;
+    result = result.split(` ${origin}`).join('');
+  }
+  // A directive that allowlisted only a CDN origin (e.g. font-src, which existed solely for
+  // Fabric's icon fonts) is left with no source values at all after stripping it above --
+  // that's invalid CSP syntax, so drop the whole directive rather than emit "font-src;".
+  // default-src 'none' already blocks it the same way.
+  result = result.replace(/\s*[a-z-]+-src;/g, '');
   return result;
 }
 
