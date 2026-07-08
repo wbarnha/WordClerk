@@ -23,6 +23,10 @@ body {
     background: #f7f7f7;
 }
 
+.hidden {
+    display: none;
+}
+
 .ms-welcome__main > h2 {
     width: 100%;
     text-align: center;
