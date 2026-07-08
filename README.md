@@ -40,7 +40,7 @@ Start the dev server and sideload the add-in into Word (desktop):
 npm run start
 ```
 
-This runs the webpack dev server and uses `office-addin-debugging` to sideload the manifest into Word for debugging. Word opens with `testfile-generic.docx` (a small test document tracked in this repo) pre-loaded, instead of a blank document, so citation-related features have something to test against immediately.
+This runs the webpack dev server and uses `office-addin-debugging` to sideload the manifest into Word for debugging.
 
 ## Scripts
 - `npm run build:dev` — build development bundle
