@@ -13,9 +13,24 @@
 [![Platform: Word Add-in](https://img.shields.io/badge/platform-Word%20Add--in-2B579A?style=flat-square&logo=microsoftword&logoColor=white)](manifest.xml)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/wbarnha/WordClerk/pulls)
 
-WordClerk is a Word add-in (task pane) for applying and removing hyperlinks to case-law and parenthetical citations.
+WordClerk is a Word add-in (task pane) for legal citation work: hyperlinking case-law and parenthetical citations, looking citations up live against public and enterprise legal databases, and checking citations for Bluebook formatting problems — all from one task pane, and entirely local by default.
 
 > **Bringing this to IT for approval?** Start with [Security & IT review](#security--it-review) — it has a one-page summary, a data-flow table, a plain-English permissions breakdown, and a centralized-deployment path, written for a security reviewer rather than a developer.
+
+## Features
+
+WordClerk has four tabs, each a self-contained workflow:
+
+| Tab | What it does | Network calls? |
+| --- | --- | --- |
+| **Case Law** | Apply or remove hyperlinks by copying them from a source `.docx` that already has case-law citations hyperlinked — the visible text never changes, only the links. | None — parsed entirely in-browser |
+| **Non-patent Literature** | Scan the open document for parenthetical citations (e.g. `(Smith v. Jones, 2020)`), then assign a URL to each and apply/remove the resulting hyperlinks. | None |
+| **Online Lookup** | An alternative to Case Law's file-based workflow: queries a citation lookup provider live and hyperlinks only the citations that resolve to exactly one case. Ships with free **CourtListener** support out of the box, plus a plugin architecture for enterprise providers (**LexisNexis**, **Westlaw**, **Bloomberg Law**) using your firm's own contracted credentials. See [Citation hyperlink providers](#citation-hyperlink-providers-plugin-architecture). | Opt-in, per-citation only |
+| **Bluebook Check** | Scans the document's case citations for common Bluebook mechanical formatting problems (the `"v."` abbreviation, reporter series form, year/court presence, edition-specific case-name abbreviations) across three selectable editions (20th/21st/22nd). Click any flagged citation to jump straight to it in the document. See [Bluebook citation checking](#bluebook-citation-checking-plugin-architecture). | None |
+
+A **Report an issue** link sits at the bottom of every tab, pointing straight to this repo's [GitHub Issues](https://github.com/wbarnha/WordClerk/issues).
+
+Three tabs make zero network calls, ever — Online Lookup is the only feature that leaves the machine, and only when a user explicitly turns it on. See [Security & IT review](#security--it-review) for the full data-flow breakdown.
 
 ## Development
 
@@ -109,6 +124,8 @@ The **Bluebook Check** tab scans the current document's case citations for commo
 
 plus a small set of edition-specific case-name abbreviations (see below). **It does not check every Bluebook rule** (typeface/italics, signal usage, pinpoint-citation style for non-case authorities, etc.) and isn't a substitute for the actual rulebook — treat a clean result as "no obvious mechanical problems," not "Bluebook-perfect."
 
+Each citation in the results list is clickable: clicking it searches the document for that exact citation text and selects it, which moves Word's view to show where it actually appears — no manual scrolling/searching needed to find a flagged citation.
+
 Like the citation lookup providers, Bluebook editions are plugins implementing `BluebookRuleSet` in [src/taskpane/bluebook/types.ts](src/taskpane/bluebook/types.ts) and registering with `bluebookRuleSetRegistry` in [src/taskpane/bluebook/index.ts](src/taskpane/bluebook/index.ts). Pick an edition from the dropdown on the Bluebook Check tab; each is checked independently and adding a new edition (or a firm/journal-specific house style) means implementing the interface and registering an instance.
 
 Built-in editions — **20th (2015)**, **21st (2020)**, **22nd (2025, current)**:
@@ -176,7 +193,6 @@ WordClerk itself is a thin, client-side Word add-in with no hosted service of it
 - If you're evaluating this add-in as a piece of software (rather than as a hosted vendor), Microsoft's [Microsoft 365 App Compliance Program](https://learn.microsoft.com/en-us/microsoft-365-app-certification/overview) is the applicable path for Office Add-ins: **Publisher Attestation** (a self-assessment of security/data-handling practices) or full **Microsoft 365 Certification** (a third-party audit against SOC 2/PCI-DSS/ISO 27001-aligned controls). Neither has been completed for WordClerk; pursue whichever your IT team requires before broad deployment.
 - Firms increasingly vet vendors with standardized questionnaires (e.g., the Shared Assessments **SIG** questionnaire) rather than, or in addition to, certifications — the "Security & IT review" section above is meant to answer those questions directly from the source.
 - Because the LexisNexis/Westlaw/Bloomberg Law integrations are opt-in and use *your firm's own* contracted API credentials, your firm's existing vendor agreements and compliance posture with those three vendors govern that data flow — WordClerk is just the client dialing out to an endpoint you already have a relationship with.
-- Under the ABA Model Rules (notably Rule 1.1 cmt. 8 on technology competence and Rule 1.6 on confidentiality), the relevant question for any tool touching client matters is typically "what leaves the firm's control and where does it go" — the Security & IT review section above is written to answer exactly that.
 
 ## Performance notes
 
