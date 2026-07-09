@@ -32,7 +32,8 @@
     "watch": "webpack --mode development --watch",
     "convert-logos": "node scripts/convert-logos.js",
     "bluebook:update-data": "node scripts/generate-bluebook-data.js",
-    "test": "jest"
+    "test": "jest",
+    "test:live": "jest tests/courtListener.live.test.ts"
   },
   "dependencies": {
     "@types/jszip": "^3.4.0",

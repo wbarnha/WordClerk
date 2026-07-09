@@ -29,10 +29,11 @@ OpenClerk has four tabs, each a self-contained workflow:
 | **Non-patent Literature** | Scan the open document for parenthetical citations (e.g. `(Smith v. Jones, 2020)`), then assign a URL to each and apply/remove the resulting hyperlinks. | None |
 | **Online Lookup** | An alternative to Case Law's file-based workflow: queries a citation lookup provider live and hyperlinks only the citations that resolve to exactly one case. Ships with free **CourtListener** support out of the box, plus a plugin architecture for enterprise providers (**LexisNexis**, **Westlaw**, **Bloomberg Law**) using your firm's own contracted credentials. See [Citation hyperlink providers](#citation-hyperlink-providers-plugin-architecture). | Opt-in, per-citation only |
 | **Bluebook Check** | Scans the document's case citations for common Bluebook mechanical formatting problems (the `"v."` abbreviation, reporter series form, year/court presence, edition-specific case-name abbreviations) across three selectable editions (20th/21st/22nd). Click any flagged citation to jump straight to it in the document. See [Bluebook citation checking](#bluebook-citation-checking-plugin-architecture). | None |
+| **Embed Cited Text** | Finds citations that pinpoint a page beyond the first page of the opinion (a single page, a list of pages, or a page range) and embeds the cited court opinion text for that pincite as a Word comment on the citation — comments are collapsed by default and expand on click. See [Embedding cited opinion text](#embedding-cited-opinion-text). | Opt-in, per-citation only |
 
 A **Report an issue** link sits at the bottom of every tab, pointing straight to this repo's [GitHub Issues](https://github.com/OpenClerkProject/openclerk-word/issues).
 
-Three tabs make zero network calls, ever — Online Lookup is the only feature that leaves the machine, and only when a user explicitly turns it on. See [Security & IT review](#security--it-review) for the full data-flow breakdown.
+Most of OpenClerk makes zero network calls, ever. Online Lookup, Find Hallucinations, and Embed Cited Text are the only features that leave the machine, and each one only does so when a user explicitly runs it. See [Security & IT review](#security--it-review) for the full data-flow breakdown.
 
 ## Development
 
@@ -153,6 +154,32 @@ Built-in editions — **20th (2015)**, **21st (2020)**, **22nd (2025, current)**
 - All three run the same shared, edition-stable Rule 10 (case citation) checks listed above — see [commonRules.ts](src/taskpane/bluebook/commonRules.ts). Per the [University of Washington Law Library's Bluebook 101 guide](https://lib.law.uw.edu/bluebook101/editions) ([22nd edition page](https://lib.law.uw.edu/bluebook101/22nd)), the documented changes across these three editions are concentrated in statutory/online-source citation, typeface terminology, and new source types (audio/video, AI-generated content, state administrative materials) — not in core case-citation format, so there was no accurate edition-specific case-citation rule to invent for most of Rule 10.
 - The one genuine, verified case-citation-relevant difference: the **21st edition merged Table T6** (case-name word abbreviations) **with the former Table T13.2** (periodical/institutional-author abbreviations), so several words — e.g. *Laboratory* → `Lab'y`, *Employment*/*Employee* → `Emp.`, and similarly *Environment* → `Env't`, *Research* → `Rsch.`, *Psychology* → `Psych.`, *Sociology* → `Socio.`, *Comparative* → `Compar.` — went from "spelled out in case names, abbreviated only in institutional-author citations" to "abbreviated everywhere." The 20th-edition rule-set doesn't flag these words in case names; the 21st and 22nd do. Sources: the UW guide above and Mary Whisner, [Bluebook Weight Loss Program, Part Two: The Merger of Tables T6 and T13.2](https://citeblog.access-to-law.com/?p=1074) (which specifically confirms the *Laboratory*/*Employment* mappings; the remaining word list is the same category of T6/T13.2-merger abbreviation but hasn't been independently verified word-for-word against the official table — see the sourcing note in [caseNameAbbreviations.ts](src/taskpane/bluebook/caseNameAbbreviations.ts)).
 
+## Embedding cited opinion text
+
+The **Embed Cited Text** tab finds case citations that pinpoint a specific page beyond the first page of the opinion — Bluebook calls this a pincite, and it shows up as a single page (`, 496`), a comma-separated list (`, 505, 508, 513`), or a page range (`, 705-06`) after the citation's starting page. For each one, it fetches the cited opinion's text at that exact page (or pages) and attaches it to the citation **as a Word comment**.
+
+A Word comment is collapsed to a small icon in the margin by default and expands inline when clicked — that's deliberately reused as the "embedded, expandable/collapsible" mechanism here instead of building a custom widget, since it's a native Word feature that already does exactly this, and the user can review, reply to, resolve, or delete the comments with Word's own comment tools. Click **Remove embedded text** to delete only the comments OpenClerk added (it never touches comments you wrote yourself).
+
+**This requires a provider that can supply full opinion text, not just a hyperlink.** Today only **CourtListener** implements this (see `OpinionTextCapableProvider` in [src/taskpane/providers/types.ts](src/taskpane/providers/types.ts)), and — unlike CourtListener's basic citation-to-hyperlink lookup — it requires an API token; CourtListener's opinion-text endpoints don't have a free anonymous tier. Connect a token first via the Manage Hyperlinks tab's Online Lookup source, then the Embed Cited Text tab will show "Ready" next to the provider once it's usable.
+
+Extracting the exact cited page from an opinion's full text is a best-effort heuristic, not a guarantee: it looks for "star pagination" markers (e.g. `*705`) — the standard convention Westlaw and most public-domain legal text corpora use to mark where each print-reporter page begins — and an opinion's text isn't required to include them (it depends on the opinion's original source). If no markers are found, or none match the requested page, that citation is skipped and reported as such rather than guessing at an excerpt. See [opinionTextExtractor.ts](src/taskpane/providers/opinionTextExtractor.ts) and [pincitePages.ts](src/taskpane/providers/pincitePages.ts) for the extraction and page-range-expansion logic, both covered by unit tests against synthetic fixture text.
+
+**CourtListener's default rate limit is modest** — 5 requests/minute, 50/hour, 125/day per [their API documentation](https://www.courtlistener.com/help/api/rest/) — and each pincite citation costs two requests here (resolving the citation to a case, then fetching that case's opinion text). On a document with several pincite citations, later ones can come back rate-limited before earlier ones finish. This is reported distinctly from "not found" (see `OpinionExcerptResult.rateLimited` in [types.ts](src/taskpane/providers/types.ts)) — wait a minute and click "Embed cited opinion text" again to pick up the rest; already-embedded citations aren't re-fetched or duplicated.
+
+### Testing against the real CourtListener API locally
+
+`npm test` never makes a network call — everything above is verified with mocked `fetch` responses. If you want to sanity-check the real integration (CourtListener's exact field names, HTML markup, and star-pagination conventions can change upstream independently of this repo), there's an opt-in live test suite that's skipped automatically unless you provide a token:
+
+```bash
+# macOS / Linux / Git Bash
+COURTLISTENER_API_TOKEN=your-token npm run test:live
+
+# Windows PowerShell
+$env:COURTLISTENER_API_TOKEN="your-token"; npm run test:live
+```
+
+Get a free token from [CourtListener's API documentation](https://www.courtlistener.com/help/api/rest/#authentication). **Never commit a token or put it in a file** — pass it as an environment variable for the one command, the same way you would any other secret. Without `COURTLISTENER_API_TOKEN` set, `npm test` and `npm run test:live` both skip this file entirely (see [courtListener.live.test.ts](tests/courtListener.live.test.ts)), so CI and every other contributor's local run are completely unaffected.
+
 ## Security & IT review
 
 ### One-page summary
@@ -174,6 +201,7 @@ Built-in editions — **20th (2015)**, **21st (2020)**, **22nd (2025, current)**
 | **Non-patent Literature** (scan/add/remove parentheticals) | None | Nothing — citations are extracted from the open document locally; URLs are typed in by the user | N/A | User clicks Scan / Add / Remove |
 | **Online Lookup** — CourtListener | Yes (opt-in) | The **individual matched citation string** (e.g. `"Norfolk & W. Ry. Co. v. Liepelt, 444 U.S. 490 (U.S.Ill., 1980)"`) — never the surrounding document text — plus the required API token | `https://www.courtlistener.com` only | User clicks "Scan & hyperlink via API" with CourtListener selected |
 | **Online Lookup** — LexisNexis / Westlaw / Bloomberg Law | Yes (opt-in) | The same per-citation string, plus an OAuth2 bearer token obtained from the credentials the user entered | The API base URL *that user typed in*, from their firm's existing vendor contract | User clicks "Connect", then "Scan & hyperlink via API" |
+| **Embed Cited Text** — CourtListener | Yes (opt-in) | The individual matched citation string, plus a required API token, to resolve the citation and then fetch that opinion's text | `https://www.courtlistener.com` only | User clicks "Embed cited opinion text" with CourtListener selected |
 
 The extraction that produces those per-citation strings (`extractCaseCitations` in [citationParser.ts](src/taskpane/providers/citationParser.ts)) runs entirely inside the Word document object model, in-browser; only the short matched substrings — never `context.document.body.getText()`'s full output — are ever passed to `fetch()`. That's checkable directly: every network call in the add-in lives in [src/taskpane/providers/](src/taskpane/providers/) and nowhere else.
 
@@ -332,11 +360,11 @@ See `scripts/local-server/serve-openclerk.ps1` and `scripts/local-server/setup-l
 
 By default, production builds point the manifest at the project's GitHub Pages deployment (`https://openclerkproject.github.io/openclerk-word/`), so most users don't need to host anything themselves.
 
-If you'd rather serve the add-in content from your own infrastructure (an internal HTTPS server, Azure Static Web Apps, S3+CloudFront, etc. — useful for IT-managed rollouts that don't want to depend on GitHub Pages), set `WORDCLERK_HOST_URL` before building or packaging:
+If you'd rather serve the add-in content from your own infrastructure (an internal HTTPS server, Azure Static Web Apps, S3+CloudFront, etc. — useful for IT-managed rollouts that don't want to depend on GitHub Pages), set `OPENCLERK_HOST_URL` before building or packaging:
 
 ```bash
-WORDCLERK_HOST_URL=https://addins.example.com/openclerk/ npm run build
-WORDCLERK_HOST_URL=https://addins.example.com/openclerk/ npm run package
+OPENCLERK_HOST_URL=https://addins.example.com/openclerk/ npm run build
+OPENCLERK_HOST_URL=https://addins.example.com/openclerk/ npm run package
 ```
 
 This bakes your URL into both `dist/manifest.xml` and the packaged manifest, so the add-in fetches its taskpane, commands, and icons from your host instead of GitHub Pages. You're responsible for uploading the contents of `dist/` to that URL yourself — this repo's CI only deploys to GitHub Pages.
