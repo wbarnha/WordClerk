@@ -43,12 +43,12 @@ type HallucinationResult = {
 type BluebookCheckedCitation = { raw: string; parsed: ParsedCitation | null; issues: BluebookIssue[] };
 type EmbedTextResult = { raw: string; embedded: boolean; reason: string | null };
 
-// Prefix on every comment WordClerk inserts via "Embed cited opinion text", so "Remove embedded
+// Prefix on every comment OpenClerk inserts via "Embed cited opinion text", so "Remove embedded
 // text" can find-and-delete only its own comments without touching any the user added by hand.
 // The citation's raw text is embedded right after the marker (see buildEmbeddedCommentContent)
 // so a re-run can tell which citations already have a comment and skip them, instead of
 // re-fetching (wasteful given CourtListener's rate limit) and inserting a duplicate.
-const EMBEDDED_TEXT_COMMENT_MARKER = "[WordClerk embedded citation text]";
+const EMBEDDED_TEXT_COMMENT_MARKER = "[OpenClerk embedded citation text]";
 
 function buildEmbeddedCommentContent(raw: string, excerpt: string): string {
   return `${EMBEDDED_TEXT_COMMENT_MARKER} ${raw}\n\n${excerpt}`;
@@ -1197,7 +1197,7 @@ async function embedCitedOpinionText() {
         return;
       }
 
-      // Citations that already have a WordClerk comment are skipped rather than re-fetched --
+      // Citations that already have an OpenClerk comment are skipped rather than re-fetched --
       // both to avoid inserting a duplicate comment and to conserve CourtListener's rate limit
       // when re-running after a previous run got partially rate-limited.
       const existingComments = context.document.body.getComments();
@@ -1260,7 +1260,7 @@ async function embedCitedOpinionText() {
 }
 
 async function removeEmbeddedCitationText() {
-  setStatus("Removing WordClerk-embedded citation text...");
+  setStatus("Removing OpenClerk-embedded citation text...");
 
   try {
     await Word.run(async (context) => {

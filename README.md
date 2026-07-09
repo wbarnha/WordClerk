@@ -33,7 +33,7 @@ OpenClerk has four tabs, each a self-contained workflow:
 
 A **Report an issue** link sits at the bottom of every tab, pointing straight to this repo's [GitHub Issues](https://github.com/OpenClerkProject/openclerk-word/issues).
 
-Most of WordClerk makes zero network calls, ever. Online Lookup, Find Hallucinations, and Embed Cited Text are the only features that leave the machine, and each one only does so when a user explicitly runs it. See [Security & IT review](#security--it-review) for the full data-flow breakdown.
+Most of OpenClerk makes zero network calls, ever. Online Lookup, Find Hallucinations, and Embed Cited Text are the only features that leave the machine, and each one only does so when a user explicitly runs it. See [Security & IT review](#security--it-review) for the full data-flow breakdown.
 
 ## Development
 
@@ -158,7 +158,7 @@ Built-in editions — **20th (2015)**, **21st (2020)**, **22nd (2025, current)**
 
 The **Embed Cited Text** tab finds case citations that pinpoint a specific page beyond the first page of the opinion — Bluebook calls this a pincite, and it shows up as a single page (`, 496`), a comma-separated list (`, 505, 508, 513`), or a page range (`, 705-06`) after the citation's starting page. For each one, it fetches the cited opinion's text at that exact page (or pages) and attaches it to the citation **as a Word comment**.
 
-A Word comment is collapsed to a small icon in the margin by default and expands inline when clicked — that's deliberately reused as the "embedded, expandable/collapsible" mechanism here instead of building a custom widget, since it's a native Word feature that already does exactly this, and the user can review, reply to, resolve, or delete the comments with Word's own comment tools. Click **Remove embedded text** to delete only the comments WordClerk added (it never touches comments you wrote yourself).
+A Word comment is collapsed to a small icon in the margin by default and expands inline when clicked — that's deliberately reused as the "embedded, expandable/collapsible" mechanism here instead of building a custom widget, since it's a native Word feature that already does exactly this, and the user can review, reply to, resolve, or delete the comments with Word's own comment tools. Click **Remove embedded text** to delete only the comments OpenClerk added (it never touches comments you wrote yourself).
 
 **This requires a provider that can supply full opinion text, not just a hyperlink.** Today only **CourtListener** implements this (see `OpinionTextCapableProvider` in [src/taskpane/providers/types.ts](src/taskpane/providers/types.ts)), and — unlike CourtListener's basic citation-to-hyperlink lookup — it requires an API token; CourtListener's opinion-text endpoints don't have a free anonymous tier. Connect a token first via the Manage Hyperlinks tab's Online Lookup source, then the Embed Cited Text tab will show "Ready" next to the provider once it's usable.
 
@@ -360,11 +360,11 @@ See `scripts/local-server/serve-openclerk.ps1` and `scripts/local-server/setup-l
 
 By default, production builds point the manifest at the project's GitHub Pages deployment (`https://openclerkproject.github.io/openclerk-word/`), so most users don't need to host anything themselves.
 
-If you'd rather serve the add-in content from your own infrastructure (an internal HTTPS server, Azure Static Web Apps, S3+CloudFront, etc. — useful for IT-managed rollouts that don't want to depend on GitHub Pages), set `WORDCLERK_HOST_URL` before building or packaging:
+If you'd rather serve the add-in content from your own infrastructure (an internal HTTPS server, Azure Static Web Apps, S3+CloudFront, etc. — useful for IT-managed rollouts that don't want to depend on GitHub Pages), set `OPENCLERK_HOST_URL` before building or packaging:
 
 ```bash
-WORDCLERK_HOST_URL=https://addins.example.com/openclerk/ npm run build
-WORDCLERK_HOST_URL=https://addins.example.com/openclerk/ npm run package
+OPENCLERK_HOST_URL=https://addins.example.com/openclerk/ npm run build
+OPENCLERK_HOST_URL=https://addins.example.com/openclerk/ npm run package
 ```
 
 This bakes your URL into both `dist/manifest.xml` and the packaged manifest, so the add-in fetches its taskpane, commands, and icons from your host instead of GitHub Pages. You're responsible for uploading the contents of `dist/` to that URL yourself — this repo's CI only deploys to GitHub Pages.
