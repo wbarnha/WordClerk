@@ -56,7 +56,7 @@ function renderPage(bodyHtml) {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>WordClerk</title>
+<title>OpenClerk</title>
 <style>
   :root {
     color-scheme: light;
@@ -158,7 +158,7 @@ function renderPage(bodyHtml) {
 </head>
 <body>
 <header class="site-header">
-  <h1>WordClerk</h1>
+  <h1>OpenClerk</h1>
   <nav>
     <a href="https://github.com/wbarnha/WordClerk">Repository</a>
     <a href="https://github.com/wbarnha/WordClerk/releases">Releases</a>
@@ -169,9 +169,9 @@ function renderPage(bodyHtml) {
 ${bodyHtml}
 </main>
 <footer class="site-footer">
-  This site hosts WordClerk's add-in content and documentation, rendered from
+  This site hosts OpenClerk's add-in content and documentation, rendered from
   <a href="https://github.com/wbarnha/WordClerk/blob/main/README.md">README.md</a>.
-  WordClerk is not a standalone web app &mdash; install it in Microsoft Word to use it.
+  OpenClerk is not a standalone web app &mdash; install it in Microsoft Word to use it.
 </footer>
 </body>
 </html>
