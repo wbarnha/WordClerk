@@ -14,8 +14,6 @@ import {
   extractParentheticalCitations,
   escapeHtml,
   isSafeHyperlinkUrl,
-} from "./utils";
-import {
   citationProviderRegistry,
   parseCaseCitation,
   extractCaseCitations,
@@ -25,8 +23,10 @@ import {
   CitationProvider,
   OpinionTextCapableProvider,
   ParsedCitation,
-} from "./providers";
-import { bluebookRuleSetRegistry, BluebookRuleSet, BluebookIssue } from "./bluebook";
+  bluebookRuleSetRegistry,
+  BluebookRuleSet,
+  BluebookIssue,
+} from "openclerk-core";
 
 type CitationMap = Map<string, string>;
 type ParentheticalEntry = { citation: string; url: string; id: string };
@@ -735,9 +735,11 @@ function invalidateBluebookResults() {
 }
 
 /**
- * Deep-links into the "Bluebook citation correction" GitHub Issue Form (see
- * .github/ISSUE_TEMPLATE/bluebook-correction.yml and CONTRIBUTING.md) with the flagged citation
- * and rule already filled in, so reporting a possible false positive doesn't require retyping it.
+ * Deep-links into openclerk-core's "Bluebook citation correction" GitHub Issue Form (see
+ * openclerk-core's .github/ISSUE_TEMPLATE/bluebook-correction.yml and this repo's CONTRIBUTING.md)
+ * with the flagged citation and rule already filled in, so reporting a possible false positive
+ * doesn't require retyping it. Points at openclerk-core, not this repo, because the Bluebook rule
+ * data and rule-checking logic it reports against lives there now.
  */
 function buildBluebookCorrectionReportUrl(citationText: string, issue: BluebookIssue): string {
   const params = new URLSearchParams({
@@ -746,7 +748,7 @@ function buildBluebookCorrectionReportUrl(citationText: string, issue: BluebookI
     "citation-example": citationText,
     "whats-wrong": `OpenClerk flagged this citation with rule "${issue.ruleId}":\n\n${issue.message}\n\nI believe this flag is incorrect because: `,
   });
-  return `https://github.com/OpenClerkProject/openclerk-word/issues/new?${params.toString()}`;
+  return `https://github.com/OpenClerkProject/openclerk-core/issues/new?${params.toString()}`;
 }
 
 async function goToCitationInDocument(citationText: string) {
