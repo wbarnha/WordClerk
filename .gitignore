@@ -5,3 +5,6 @@ openclerk-addin-offline.zip
 .offline-vendor-cache
 .vscode/testfile1.docx
 .vscode/testfile2.docx
+# tesseract.js downloads its OCR language model into the CLI's cwd the first time it runs
+# (tools/pdf-extract/*.traineddata) -- a several-MB cache artifact, not source.
+tools/pdf-extract/*.traineddata

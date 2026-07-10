@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "No dependencies or build step -- this folder is a plain static page (index.html + vendor/pdf.js) meant to be hosted or opened as-is. This file exists only so Node treats redactionAnalysis.js as an ES module when it's imported from the root project's Jest tests."
+}

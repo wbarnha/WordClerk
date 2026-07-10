@@ -22,6 +22,7 @@ import {
   expandPincitePages,
   supportsOpinionText,
   supportsRateLimitAwareness,
+  checkCitationsForHallucinations,
   CitationProvider,
   OpinionTextCapableProvider,
   ParsedCitation,
@@ -1003,33 +1004,11 @@ async function checkForHallucinations() {
         return;
       }
 
-      const results: HallucinationResult[] = [];
-
       // Looked up one citation, one provider, at a time (not in parallel) to stay within each
-      // platform's rate limits -- same reasoning as the Online Lookup tab.
-      for (const raw of candidates) {
-        const parsed = parseCaseCitation(raw) || { raw };
-        let verifiedVia: string | null = null;
-        const skippedProviders: string[] = [];
-        const rateLimitedProviders: string[] = [];
-
-        for (const provider of selectedProviders) {
-          if (provider.requiresAuth && !provider.isAuthenticated()) {
-            skippedProviders.push(provider.name);
-            continue;
-          }
-          const match = await provider.lookupCitation(parsed);
-          if (match) {
-            verifiedVia = provider.name;
-            break;
-          }
-          if (supportsRateLimitAwareness(provider) && provider.wasLastRequestRateLimited()) {
-            rateLimitedProviders.push(provider.name);
-          }
-        }
-
-        results.push({ raw, verifiedVia, skippedProviders, rateLimitedProviders });
-      }
+      // platform's rate limits -- same reasoning as the Online Lookup tab. The check itself lives
+      // in providers/hallucinationCheck.ts so it can also run outside a Word document (e.g. the
+      // pdf-extract CLI tool's --verify flag against text pulled from a PDF).
+      const results: HallucinationResult[] = await checkCitationsForHallucinations(candidates, selectedProviders);
 
       renderHallucinationResults(results);
 

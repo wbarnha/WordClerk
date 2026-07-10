@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>OpenClerk Redaction Checker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1b1b1f;
+    --muted: #5b5f66;
+    --border: #d8dade;
+    --accent: #8b1a1a;
+    --accent-bg: #fdecec;
+    --ok-bg: #eaf6ec;
+    --ok-fg: #1e5b2f;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17181c;
+      --fg: #e7e8ea;
+      --muted: #a3a7ae;
+      --border: #34363c;
+      --accent: #ff6b6b;
+      --accent-bg: #3a1414;
+      --ok-bg: #12301b;
+      --ok-fg: #8fe0a3;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2rem 1.25rem 4rem;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  p.lede { color: var(--muted); margin-top: 0; max-width: 60ch; }
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: var(--muted);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .drop-zone.dragover {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+  }
+  .drop-zone input { display: none; }
+  #status {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+    min-height: 1.2em;
+  }
+  #results { margin-top: 1.5rem; }
+  .page-result {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .page-result h2 {
+    font-size: 1rem;
+    margin: 0 0 0.5rem;
+  }
+  .page-result canvas {
+    max-width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+  }
+  .finding {
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+  .finding strong { color: var(--accent); }
+  .all-clear {
+    background: var(--ok-bg);
+    color: var(--ok-fg);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+  }
+  footer {
+    margin-top: 3rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>OpenClerk Redaction Checker</h1>
+  <p class="lede">
+    Checks a PDF for <strong>bad redactions</strong> -- a black box drawn over sensitive text without
+    actually removing that text from the document, so it's still present (and copy/paste- or
+    search-able) underneath. Modeled on
+    <a href="https://github.com/freelawproject/x-ray" target="_blank" rel="noopener noreferrer">Free Law
+    Project's x-ray</a>. Everything runs locally in your browser -- the PDF is never uploaded anywhere.
+  </p>
+
+  <label class="drop-zone" id="drop-zone">
+    <input type="file" id="file-input" accept="application/pdf" />
+    <span id="drop-zone-label">Drop a PDF here, or click to choose a file</span>
+  </label>
+
+  <div id="status"></div>
+  <div id="results"></div>
+
+  <footer>
+    Part of <a href="https://github.com/OpenClerkProject/openclerk-word" target="_blank" rel="noopener noreferrer">OpenClerk</a>.
+    No file is ever sent over the network -- this page loads a locally vendored copy of
+    <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener noreferrer">pdf.js</a> and does
+    all analysis in-browser.
+  </footer>
+</main>
+
+<script type="module" src="./redactionChecker.js"></script>
+</body>
+</html>

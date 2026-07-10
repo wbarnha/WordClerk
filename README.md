@@ -268,6 +268,45 @@ Extracting the exact cited page from an opinion's full text is a best-effort heu
 
 **CourtListener's default rate limit is modest** — 5 requests/minute, 50/hour, 125/day per [their API documentation](https://www.courtlistener.com/help/api/rest/) — and each pincite citation costs two requests here (resolving the citation to a case, then fetching that case's opinion text). On a document with several pincite citations, later ones can come back rate-limited before earlier ones finish. This is reported distinctly from "not found" (see `OpinionExcerptResult.rateLimited` in [types.ts](src/taskpane/providers/types.ts)) — wait a minute and click "Embed cited opinion text" again to pick up the rest; already-embedded citations aren't re-fetched or duplicated.
 
+## Standalone tools
+
+Two tools live under [tools/](tools/), outside the Word add-in bundle: a PDF/OCR extraction CLI, and a browser-only bad-redaction checker. Both are separate, self-contained packages -- neither is bundled into `dist/` or loaded by Word, and neither changes the add-in's zero-network-by-default behavior.
+
+### `tools/pdf-extract` -- PDF text/OCR extraction and citation-hallucination CLI
+
+A standalone Node CLI (its own `package.json`, independent of the add-in's webpack build) that extracts text from a PDF and, optionally, reports the case citations it finds:
+
+```bash
+cd tools/pdf-extract
+npm install
+npm run build
+node dist/tools/pdf-extract/src/cli.js path/to/file.pdf --citations
+```
+
+- **Text extraction** tries [pdf.js](https://mozilla.github.io/pdf.js/)'s embedded text layer first (fast and exact -- works for the vast majority of e-filed court documents, which are generated from a text source rather than scanned). Any page with little or no embedded text (a scanned/image-only page) is rasterized and OCR'd with [tesseract.js](https://github.com/naptha/tesseract.js) instead, automatically, with no flag needed. Pass `--no-ocr` to skip that fallback and extract text-layer-only.
+- **`--citations`** runs OpenClerk's citation engine (the same `citationParser.ts` used by the Word add-in) over the extracted text and reports every full, short-form (`444 U.S. at 495`), `Id.`, and `supra` citation, clustered by which case each one refers to -- eyecite-style citation resolution, without a Python dependency.
+- **`--verify`** additionally checks each full citation against CourtListener (via a `COURTLISTENER_API_TOKEN` environment variable) and flags any that don't resolve as a possible hallucination -- the same check as the Word add-in's Find Hallucinations tab (they share one implementation, `providers/hallucinationCheck.ts`), just runnable against a PDF instead of an open Word document.
+- **`--json`** / **`--out <file>`** control output format and destination; see `--help` (no arguments) for the full flag list.
+
+This was validated end-to-end against a real, publicly filed document: [tests/fixtures/mata-v-avianca-filing.pdf](tests/fixtures/mata-v-avianca-filing.pdf), the affirmation in opposition from *Mata v. Avianca, Inc.*, No. 1:22-cv-01461-PKC (S.D.N.Y.) -- the filing at the center of the widely reported incident in which counsel submitted ChatGPT-fabricated case citations to a federal court. The PDF's pages have no embedded text layer at all (only a CM/ECF header stamp does), so running it through this tool is a real OCR round-trip, not just text-layer extraction; `--citations` correctly recovers and clusters both fabricated citations (*Peterson v. Iran Air* and *Martinez v. Delta Airlines, Inc.*) alongside the filing's genuine ones. See [tests/hallucinationCheck.test.ts](tests/hallucinationCheck.test.ts) and [tests/citationClustering.test.ts](tests/citationClustering.test.ts) for the corresponding unit tests, and [tools/pdf-extract/README.md](tools/pdf-extract/README.md) for how to reproduce the OCR run yourself.
+
+### `tools/redaction-checker` -- bad-redaction detector
+
+A static web page (`tools/redaction-checker/index.html`) that checks a PDF for **bad redactions** -- a black box drawn over sensitive text without actually removing that text from the underlying document, leaving it still present (and copy/paste- or search-able) underneath the box. Modeled on Free Law Project's [x-ray](https://github.com/freelawproject/x-ray).
+
+Everything runs client-side: pick or drag a PDF onto the page, and it's parsed entirely in your browser using a locally vendored copy of pdf.js (`tools/redaction-checker/vendor/`) -- the file is never uploaded anywhere. For each page, it walks pdf.js's parsed content stream for dark/black filled rectangles (the shape a redaction bar takes) and checks whether pdf.js's own extracted text for that page still has real text underneath that rectangle's bounding box; if so, that box is flagged, the offending page is rendered with the box outlined in red, and the recovered "hidden" text is shown next to it.
+
+Because it's a static page with no build step, it just needs to be served over HTTP(S) (opening it directly via `file://` will fail — browsers block ES module imports, which pdf.js requires, from `file://` origins). Any static file server works, e.g.:
+
+```bash
+cd tools/redaction-checker
+npx serve .
+```
+
+The detection logic (`redactionAnalysis.js`) has no pdf.js or DOM dependency of its own -- it takes a pdf.js-shaped operator list and text items as plain data -- so it's covered by ordinary unit tests against synthetic fixtures rather than real PDFs; see [tests/redactionAnalysis.test.ts](tests/redactionAnalysis.test.ts).
+
+**This is a heuristic, not a guarantee.** It can only catch a redaction drawn as an opaque shape over text that's still in the page's content stream -- it can't detect every way a redaction can go wrong (e.g. text moved but not deleted, or a redaction applied only to a rendered image with no text layer at all), and a clean result isn't a substitute for manual review before filing or producing a document.
+
 ### Testing against the real CourtListener API locally
 
 `npm test` never makes a network call — everything above is verified with mocked `fetch` responses. If you want to sanity-check the real integration (CourtListener's exact field names, HTML markup, and star-pagination conventions can change upstream independently of this repo), there's an opt-in live test suite that's skipped automatically unless you provide a token:

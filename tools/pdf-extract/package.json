@@ -1,0 +1,35 @@
+{
+  "name": "openclerk-pdf-extract",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone CLI: extract text from a PDF via pdf.js's embedded text layer, falling back to tesseract.js OCR for pages with no extractable text (scanned/image-only pages). Also runs OpenClerk's citation engine over the extracted text to report full/short-form/id. citations and flag likely-hallucinated ones.",
+  "bin": {
+    "openclerk-pdf-extract": "dist/tools/pdf-extract/src/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.53",
+    "pdfjs-dist": "^4.6.82",
+    "tesseract.js": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.0.0",
+    "pdf-lib": "^1.17.1",
+    "ts-jest": "^29.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.2"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/test/**/*.test.ts"
+    ],
+    "testTimeout": 60000
+  }
+}
