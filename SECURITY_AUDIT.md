@@ -213,25 +213,59 @@ handling. They are notably well-hardened; specific checks:
   local `.ps1` only (standard for a double-clickable installer of a
   first-party script), not a remote payload.
 
-## Documented only (round 2)
+## Findings fixed (round 2 follow-up, 2026-07-12)
 
-### D. Offline setup installs a self-signed cert into the machine Trusted Root store
-`scripts/local-server/setup-local-server.ps1` (`Install-LocalhostCertBinding`)
-creates a self-signed `CN=OpenClerkLocalServer` certificate and adds it to
-`Cert:\LocalMachine\Root` (5-year validity) so the loopback HTTPS server is
-trusted by the browser/webview. This is the standard approach for local
-HTTPS (mkcert and Office's own dev-cert tooling do the same) and is
-**bounded**: the cert's `KeyUsage` is `DigitalSignature, KeyEncipherment`
-only — no `KeyCertSign` — so it is a leaf cert for `localhost`, not a CA
-that can mint trust for other domains, and its private key lives in
-`LocalMachine\My`. Residual risk worth noting for a security reviewer: (a)
-it's only reachable via the **offline** package path (the default GitHub
-Pages install never runs this), and (b) anyone who could extract the
-machine-local private key could impersonate `127.0.0.1:$Port` to this
-user — which already presupposes local access. No change recommended;
-flagged so a deploying firm can decide whether the offline path fits their
-endpoint policy. There is no uninstall script that removes the Root-store
-cert / URL ACL / scheduled task — worth adding for manageability.
+Prompted by a follow-up question about finding D below — is there a better
+way to avoid the machine-wide Trusted Root install? There was, and it's
+now implemented.
+
+### D. Offline setup installed a self-signed cert into the machine Trusted Root store — fixed
+**Files:** `scripts/local-server/setup-local-server.ps1`,
+`scripts/local-server/serve-openclerk.ps1`
+
+Previously, `setup-local-server.ps1` (`Install-LocalhostCertBinding`)
+created a self-signed `CN=OpenClerkLocalServer` certificate in
+`Cert:\LocalMachine\My` with an **exportable** private key, trusted it via
+`Cert:\LocalMachine\Root` (machine-wide), and bound it to HTTP.sys with
+`netsh http add sslcert`/`urlacl` — all of which required a UAC elevation
+prompt. Root cause was `serve-openclerk.ps1`'s use of
+`System.Net.HttpListener`, which sits on HTTP.sys and forces both the
+machine-global bindings and a machine-store certificate.
+
+**Fix:** `serve-openclerk.ps1` was rewritten to terminate TLS in-process
+with `TcpListener` + `SslStream` instead of `HttpListener`, which removes
+the HTTP.sys dependency entirely. This let `setup-local-server.ps1` move to
+a fully per-user, non-elevated design:
+- **Per-user cert, non-exportable key.** `New-SelfSignedCertificate` now
+  targets `Cert:\CurrentUser\My` with `-KeyExportPolicy NonExportable` and
+  an EKU restricted to Server Authentication only. The private key never
+  enters a machine-wide store and can't be exported even by the installing
+  user.
+- **Per-user trust.** The public certificate is added to
+  `Cert:\CurrentUser\Root` — no machine-wide trust anchor is created, so
+  other users on the same machine are unaffected.
+- **No elevation, no `netsh`.** All `Test-IsAdmin`/`-ElevatedCertStep`/`Start-Process
+  -Verb RunAs` code was removed; the scheduled task's principal is
+  explicitly `-RunLevel Limited`. The entire install now runs as the
+  current user with no UAC prompt.
+- **Stronger secret generation.** The per-install auth secret moved from a
+  128-bit `Guid.NewGuid()` to a 256-bit value from
+  `RandomNumberGenerator`, while keeping the existing ACL hardening
+  (inherited permissions stripped, restricted to the installing user) on
+  the file it's stored in.
+- **`-Uninstall` switch added**, closing the previously-noted gap: it
+  stops/unregisters the scheduled task, removes the cert from both
+  `CurrentUser\My` and `CurrentUser\Root` by subject, and removes the
+  install directory and WEF manifest.
+
+TLS is fixed to 1.2 (not 1.3) because the scheduled task runs under
+Windows PowerShell 5.1/.NET Framework, whose `SslStream` doesn't support
+1.3. The `Test-Authorized` cookie/query-secret check, MIME table,
+Content-Security-Policy header, and path-traversal guard (`GetFullPath`
+must resolve inside `ContentRoot`) were all carried over unchanged from
+the previous implementation.
+
+## Documented only (round 2)
 
 ### E. Offline packaging vendors Microsoft CDN assets without integrity pinning
 `scripts/package-release-offline.js` fetches `office.js` and Fabric's
