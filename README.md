@@ -101,7 +101,7 @@ See the [Development](#development) section below for instructions on running th
 
 ### Option 6: Run fully offline (no internet connection required, Windows only)
 
-Both Option 1 and Option 2 need internet access every time the add-in loads, since Word fetches its content live from GitHub Pages. If you need OpenClerk to work with no network connection at all, use the offline package instead. **This option is currently Windows-only** — the setup script binds a self-signed HTTPS certificate and registers a scheduled task using Windows-specific APIs (`New-SelfSignedCertificate`, `netsh http`, Task Scheduler) that don't have a macOS equivalent:
+Both Option 1 and Option 2 need internet access every time the add-in loads, since Word fetches its content live from GitHub Pages. If you need OpenClerk to work with no network connection at all, use the offline package instead. **This option is currently Windows-only** — the setup script binds a self-signed HTTPS certificate and registers a scheduled task using Windows-specific APIs (`New-SelfSignedCertificate`, Task Scheduler) that don't have a macOS equivalent:
 
 1. Download `openclerk-addin-offline.zip` from the [GitHub Releases page](https://github.com/OpenClerkProject/openclerk-word/releases).
 2. Extract it, then run the setup script:
@@ -110,16 +110,17 @@ Both Option 1 and Option 2 need internet access every time the add-in loads, sin
 powershell -ExecutionPolicy Bypass -File installer\setup-local-server.ps1
 ```
 
-3. Windows will prompt for administrator approval once (UAC) — this is only used to bind a self-signed HTTPS certificate to a single `127.0.0.1` port and is not required again after the first run.
-4. Restart Word.
+3. Restart Word.
+
+No administrator approval or UAC prompt is needed — the certificate is created per-user (`Cert:\CurrentUser\My`, non-exportable, trusted via `Cert:\CurrentUser\Root`) and the local server terminates TLS itself, so nothing here touches machine-wide configuration.
 
 This installs a small local web server that:
 - **Only binds to `127.0.0.1`** on one fixed port (`44399` by default) — it's unreachable from the network, and no other ports are opened.
 - **Requires a per-install secret token** to serve any content, so other local processes can't casually request pages from it.
-- **Runs hidden and starts automatically at login** (via a Scheduled Task named `OpenClerkLocalServer`), so the add-in works immediately without you needing to start anything yourself.
+- **Runs hidden and starts automatically at login** (via a Scheduled Task named `OpenClerkLocalServer`, running with standard — not elevated — rights), so the add-in works immediately without you needing to start anything yourself.
 - **Includes local copies of `office.js` and the Fabric CSS** (vendored from Microsoft's CDN at packaging time), so the taskpane doesn't silently require internet access just to load its own framework files.
 
-See `scripts/local-server/serve-openclerk.ps1` and `scripts/local-server/setup-local-server.ps1` for the implementation. To remove it later: `Unregister-ScheduledTask -TaskName OpenClerkLocalServer`, then remove `%LOCALAPPDATA%\OpenClerk\LocalServer`.
+See `scripts/local-server/serve-openclerk.ps1` and `scripts/local-server/setup-local-server.ps1` for the implementation. To remove it later: `powershell -ExecutionPolicy Bypass -File installer\setup-local-server.ps1 -Uninstall`.
 
 ## Features
 
