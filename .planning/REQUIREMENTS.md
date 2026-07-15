@@ -12,8 +12,10 @@ Each maps to roadmap phases.
 
 - [ ] **ESCAPE-01**: Branded `SafeHtml`/`SafeHyperlinkUrl` types are added to `utils.ts` and used to
       type-constrain Office.js insertion helpers
+
 - [ ] **ESCAPE-02**: A single wrapper module (`safeInsertion.ts`) owns all raw Office.js
       `insertHtml`/`insertHyperlink`/`insertComment` calls
+
 - [ ] **ESCAPE-03**: An ESLint `no-restricted-syntax` rule bans direct calls to raw Office.js
       insertion APIs outside the wrapper module, failing the build on a bypass
 
@@ -22,13 +24,15 @@ Each maps to roadmap phases.
 - [ ] **PROVIDER-01**: A config-driven `GenericEnterpriseCitationProvider` in `providers/base.ts`
       replaces the near-duplicate logic in `westlawProvider.ts`, `lexisNexisProvider.ts`, and
       `bloombergLawProvider.ts`
+
 - [ ] **PROVIDER-02**: Test coverage is extended so all three enterprise providers have equivalent
       coverage to each other
 
 ### openclerk-core Dependency Cleanup
 
-- [ ] **CORE-01**: PR #33 ("Depend on openclerk-core instead of vendoring its logic") is merged to
+- [x] **CORE-01**: PR #33 ("Depend on openclerk-core instead of vendoring its logic") is merged to
       `main`
+
 - [ ] **CORE-02**: `src/commands/` and `scripts/` are audited for any remaining logic duplicated in
       `openclerk-core`, and any found is removed
 
@@ -37,6 +41,7 @@ Each maps to roadmap phases.
 - [ ] **MANIFEST-01**: `manifest.xml`'s `ProviderName`, `Description`, and `GetStarted` ribbon text
       are updated from Yeoman-template placeholders (`Contoso`, "A template to get started.") to
       accurate OpenClerk copy
+
 - [ ] **MANIFEST-02**: A genuine 64×64 `HighResolutionIconUrl` icon asset is added (current asset
       is mis-sized at 80×80)
 
@@ -45,8 +50,10 @@ Each maps to roadmap phases.
 - [ ] **SUBMIT-01**: PR #27 ("Add Privacy Policy and Terms of Use for Partner Center submission")
       is rebased onto `main` and merged, with `TERMS.md` §8 (governing-law jurisdiction) tracked
       as a separate open task rather than blocking this PR
+
 - [ ] **SUBMIT-02**: CI's Partner Center publish job is confirmed to validate the production-built
       package (`office-addin-manifest validate -p`) rather than the dev manifest
+
 - [ ] **SUBMIT-03**: Certification/testing notes and a listing description are drafted, disclosing
       the optional external-service dependency (CourtListener / enterprise providers) for
       Microsoft's reviewer
@@ -60,6 +67,7 @@ Deferred to future release. Tracked but not in current roadmap.
 - **WORDTS-01**: Split `src/taskpane/word.ts` into feature-scoped `workflows/*.ts` modules,
   starting with the low-risk pieces (`sourceDocument`, `documentActions`, `statusBar`,
   `bluebookCheck`, `embedOpinionText`)
+
 - **WORDTS-02**: Split the high-risk workflows (`hyperlinking`, `onlineLookup`,
   `hallucinationCheck`) into their own modules, trimming `word.ts` to a thin composition root
 
@@ -94,7 +102,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ESCAPE-03 | Phase 2 | Pending |
 | PROVIDER-01 | Phase 3 | Pending |
 | PROVIDER-02 | Phase 3 | Pending |
-| CORE-01 | Phase 1 | Pending |
+| CORE-01 | Phase 1 | Complete |
 | CORE-02 | Phase 1 | Pending |
 | MANIFEST-01 | Phase 4 | Pending |
 | MANIFEST-02 | Phase 4 | Pending |
@@ -103,6 +111,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SUBMIT-03 | Phase 4 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 12 total
 - Mapped to phases: 12 ✓
 - Unmapped: 0

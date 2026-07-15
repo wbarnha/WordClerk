@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1
-current_phase_name: openclerk-core Dependency Cleanup
+current_phase: 01
+current_phase_name: openclerk-core-dependency-cleanup
 status: executing
-stopped_at: Phase 1 context gathered
-last_updated: "2026-07-15T21:37:41.721Z"
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-07-15T23:22:55.886Z"
 last_activity: 2026-07-15
-last_activity_desc: Roadmap created from REQUIREMENTS.md and research/SUMMARY.md
+last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -23,16 +23,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Legal citation checks and hyperlinks must be accurate and trustworthy — a hallucination check must never falsely report a fabricated citation as "verified."
-**Current focus:** Phase 1 - openclerk-core Dependency Cleanup
+**Current focus:** Phase 01 — openclerk-core-dependency-cleanup
 
 ## Current Position
 
-Phase: 1 of 4 (openclerk-core Dependency Cleanup)
-Plan: 0 of TBD in current phase
+Phase: 01 (openclerk-core-dependency-cleanup) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-07-15 — Roadmap created from REQUIREMENTS.md and research/SUMMARY.md
+Last activity: 2026-07-15 — Phase 01 execution started
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -54,6 +54,11 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 01 P01 | 25min | 3 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -65,6 +70,7 @@ Recent decisions affecting current work:
 - Roadmap: `openclerk-core` dependency cleanup (CORE-01/02) sequenced as Phase 1 so escaping-hardening and provider-dedup refactors build on a clean, non-vendored baseline and avoid merge conflicts with PR #33.
 - Roadmap: word.ts split (WORDTS-01/02) excluded from this roadmap — deferred to v2 during requirements scoping, per PROJECT.md Out of Scope.
 - PROJECT.md: Bumped PR #33's `openclerk-core` dependency from git tag `v0.2.1` to npm registry `^0.2.6` (v0.2.1 predates ReDoS fixes and a hallucination-verification bypass fix; git-tag dependency fails to install under npm's `allow-scripts` policy).
+- [Phase ?]: PR #33 merged via GitHub merge-commit strategy (0f48462); openclerk-core@0.2.6 confirmed resolved from public npm registry, build/test green, hallucination-check Core Value guard preserved verbatim in word.ts.
 
 ### Pending Todos
 
@@ -87,6 +93,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-15T21:01:00.070Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-openclerk-core-dependency-cleanup/01-CONTEXT.md
+Last session: 2026-07-15T23:22:55.822Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None
