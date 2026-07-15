@@ -27,6 +27,9 @@ must never falsely report a fabricated citation as "verified."
 - ✓ Embed cited opinion text into the active document — existing
 - ✓ Zero-network-calls-by-default architecture; entirely client-side, no backend — existing
 - ✓ Sideloadable installer packages for Windows/macOS, online and offline variants — existing
+- ✓ Depend cleanly on the published `openclerk-core` npm package (`^0.2.6`), no vendored
+  duplicate logic remaining in `src/commands/` or `scripts/` — Validated in Phase 1:
+  openclerk-core Dependency Cleanup
 
 ### Active
 
@@ -39,12 +42,6 @@ This milestone is maintenance/compliance-focused: reduce tech debt flagged in
       new Office.js insertion call site (no compiler-enforced guard exists today)
 - [ ] Dedupe `westlawProvider.ts`/`lexisNexisProvider.ts`/`bloombergLawProvider.ts` (near-identical
       69-line files) into shared logic in `providers/base.ts`
-- [ ] Land PR #33 ("Depend on openclerk-core instead of vendoring its logic") — CI green and
-      mergeable as of this milestone's start; fixed a stale `openclerk-core` dependency pin
-      (git tag v0.2.1 → npm `^0.2.6`) that both broke installs under npm's `allow-scripts` policy
-      and missed two ReDoS fixes plus a hallucination-verification bypass fix
-- [ ] After PR #33 lands, audit the rest of the repo (`src/commands/`, `scripts/`) for any
-      remaining logic that duplicates `openclerk-core` and remove it
 - [ ] Land PR #27 ("Add Privacy Policy and Terms of Use for Partner Center submission") — open,
       currently behind `main`, needs rebase
 - [ ] Resolve `TERMS.md` §8 Governing Law jurisdiction (currently a placeholder,
@@ -70,8 +67,10 @@ milestone works from.
 
 Two PRs already exist and were reviewed for merge-readiness at the start of this milestone:
 - **PR #33** (`claude/depend-on-openclerk-core`) — switches this repo to depend on
-  `openclerk-core` instead of vendoring it. Verified during this session: CI green, `tsc`/`jest`/
-  production `webpack` build all pass locally, and a stale dependency pin was fixed and pushed.
+  `openclerk-core` instead of vendoring it. Merged to `main` in Phase 1 (merge commit `0f48462`,
+  CI green on the merge commit itself). Post-merge verification confirmed `openclerk-core@0.2.6`
+  resolves from the public npm registry, `npm ci`/`npm run build`/`npm test` all pass, and the
+  hallucination-check Core Value guard survived the merge unweakened.
 - **PR #27** (`docs/privacy-policy-terms-of-use`) — drafts `PRIVACY.md` and `TERMS.md` for Partner
   Center submission. Open, behind `main`, with one intentional placeholder (governing-law
   jurisdiction) left for the repo owner.
@@ -116,4 +115,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-15 after initialization*
+*Last updated: 2026-07-15 after Phase 1 (openclerk-core Dependency Cleanup) completion*
