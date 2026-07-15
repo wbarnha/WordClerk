@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 01
 current_phase_name: openclerk-core-dependency-cleanup
-status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-07-15T23:22:55.886Z"
+status: verifying
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-07-15T23:30:09.756Z"
 last_activity: 2026-07-15
 last_activity_desc: Phase 01 execution started
 progress:
   total_phases: 1
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 Phase: 01 (openclerk-core-dependency-cleanup) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-15 — Phase 01 execution started
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Progress: [█████░░░░░] 50%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 01 P01 | 25min | 3 tasks | 0 files |
+| Phase 01 P02 | 20min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,7 @@ Recent decisions affecting current work:
 - Roadmap: word.ts split (WORDTS-01/02) excluded from this roadmap — deferred to v2 during requirements scoping, per PROJECT.md Out of Scope.
 - PROJECT.md: Bumped PR #33's `openclerk-core` dependency from git tag `v0.2.1` to npm registry `^0.2.6` (v0.2.1 predates ReDoS fixes and a hallucination-verification bypass fix; git-tag dependency fails to install under npm's `allow-scripts` policy).
 - [Phase ?]: PR #33 merged via GitHub merge-commit strategy (0f48462); openclerk-core@0.2.6 confirmed resolved from public npm registry, build/test green, hallucination-check Core Value guard preserved verbatim in word.ts.
+- [Phase ?]: Fresh post-merge duplication audit confirmed zero logic in src/commands/ or scripts/ duplicates openclerk-core; CONCERNS.md duplication tech-debt entry marked Resolved, closing CORE-02.
 
 ### Pending Todos
 
@@ -93,6 +95,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-15T23:22:55.822Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-07-15T23:30:09.687Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None

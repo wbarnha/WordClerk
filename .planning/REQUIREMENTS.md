@@ -33,7 +33,7 @@ Each maps to roadmap phases.
 - [x] **CORE-01**: PR #33 ("Depend on openclerk-core instead of vendoring its logic") is merged to
       `main`
 
-- [ ] **CORE-02**: `src/commands/` and `scripts/` are audited for any remaining logic duplicated in
+- [x] **CORE-02**: `src/commands/` and `scripts/` are audited for any remaining logic duplicated in
       `openclerk-core`, and any found is removed
 
 ### Partner Center Manifest & Listing
@@ -103,7 +103,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROVIDER-01 | Phase 3 | Pending |
 | PROVIDER-02 | Phase 3 | Pending |
 | CORE-01 | Phase 1 | Complete |
-| CORE-02 | Phase 1 | Pending |
+| CORE-02 | Phase 1 | Complete |
 | MANIFEST-01 | Phase 4 | Pending |
 | MANIFEST-02 | Phase 4 | Pending |
 | SUBMIT-01 | Phase 4 | Pending |

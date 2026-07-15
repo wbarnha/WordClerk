@@ -40,7 +40,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. `npm install` succeeds cleanly against the `openclerk-core` `^0.2.6` npm dependency (no git-tag/`allow-scripts` install failure reproduced).
   3. `src/commands/` and `scripts/` are audited for logic duplicated in `openclerk-core`; any found is removed and replaced with an `openclerk-core` import, or the audit confirms none exists.
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans executed
 
 Plans:
 **Wave 1**
@@ -49,7 +49,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — Audit `src/commands/` and `scripts/` for logic duplicated in `openclerk-core`, record findings (CORE-02)
+- [x] 01-02-PLAN.md — Audit `src/commands/` and `scripts/` for logic duplicated in `openclerk-core`, record findings (CORE-02)
 
 ### Phase 2: Escaping Hardening
 
@@ -101,7 +101,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. openclerk-core Dependency Cleanup | 1/2 | In Progress|  |
+| 1. openclerk-core Dependency Cleanup | 2/2 | In Progress|  |
 | 2. Escaping Hardening | 0/TBD | Not started | - |
 | 3. Provider Deduplication | 0/TBD | Not started | - |
 | 4. Partner Center Submission Prep | 0/TBD | Not started | - |
