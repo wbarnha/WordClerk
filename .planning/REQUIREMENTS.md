@@ -89,24 +89,24 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ESCAPE-01 | TBD | Pending |
-| ESCAPE-02 | TBD | Pending |
-| ESCAPE-03 | TBD | Pending |
-| PROVIDER-01 | TBD | Pending |
-| PROVIDER-02 | TBD | Pending |
-| CORE-01 | TBD | Pending |
-| CORE-02 | TBD | Pending |
-| MANIFEST-01 | TBD | Pending |
-| MANIFEST-02 | TBD | Pending |
-| SUBMIT-01 | TBD | Pending |
-| SUBMIT-02 | TBD | Pending |
-| SUBMIT-03 | TBD | Pending |
+| ESCAPE-01 | Phase 2 | Pending |
+| ESCAPE-02 | Phase 2 | Pending |
+| ESCAPE-03 | Phase 2 | Pending |
+| PROVIDER-01 | Phase 3 | Pending |
+| PROVIDER-02 | Phase 3 | Pending |
+| CORE-01 | Phase 1 | Pending |
+| CORE-02 | Phase 1 | Pending |
+| MANIFEST-01 | Phase 4 | Pending |
+| MANIFEST-02 | Phase 4 | Pending |
+| SUBMIT-01 | Phase 4 | Pending |
+| SUBMIT-02 | Phase 4 | Pending |
+| SUBMIT-03 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 12 total
-- Mapped to phases: 0 (filled by roadmap creation)
-- Unmapped: 12 ⚠️
+- Mapped to phases: 12 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-15*
-*Last updated: 2026-07-15 after initial definition*
+*Last updated: 2026-07-15 after roadmap creation*
