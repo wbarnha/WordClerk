@@ -12,8 +12,8 @@ import {
   normalizeText,
   isLikelyCaseCitation,
   extractParentheticalCitations,
-  escapeHtml,
-  isSafeHyperlinkUrl,
+  toSafeHtml,
+  toSafeHyperlinkUrl,
   citationProviderRegistry,
   parseCaseCitation,
   extractCaseCitations,
@@ -28,7 +28,9 @@ import {
   bluebookRuleSetRegistry,
   BluebookRuleSet,
   BluebookIssue,
+  SafeHyperlinkUrl,
 } from "openclerk-core";
+import { insertSafeHyperlink, insertSafeComment } from "./safeInsertion";
 
 type CitationMap = Map<string, string>;
 type ParentheticalEntry = { citation: string; url: string; id: string };
@@ -214,24 +216,6 @@ async function onSourceFileSelected(event: Event) {
   }
 }
 
-async function applyHyperlinkToItem(
-  context: Word.RequestContext,
-  item: Word.Range,
-  url: string,
-  displayText: string
-): Promise<void> {
-  if (typeof (item as any).insertHyperlink === "function") {
-    (item as any).insertHyperlink(url, displayText, Word.InsertLocation.replace);
-  } else if (typeof (item as any).insertHtml === "function") {
-    const html = `<a href="${escapeHtml(url)}">${escapeHtml(displayText)}</a>`;
-    (item as any).insertHtml(html, Word.InsertLocation.replace);
-  } else {
-    // Last-resort: replace with plain text (no hyperlink)
-    item.insertText(displayText, Word.InsertLocation.replace);
-  }
-  await context.sync();
-}
-
 async function applyCaseLawHyperlinksFromSource() {
   if (!sourceCitationMap || sourceCitationMap.size === 0) {
     setStatus("Choose a source .docx file that contains hyperlink citations first.");
@@ -245,19 +229,20 @@ async function applyCaseLawHyperlinksFromSource() {
       // Batch all searches/loads/inserts into a handful of context.sync() calls instead of a
       // few per citation -- a document with 50-100+ citations previously meant 200-400+
       // sequential round-trips, which is enough to make the taskpane visibly freeze.
-      const citationEntries = Array.from(sourceCitationMap!.entries()).filter(
-        ([citationText, url]) =>
-          citationText && citationText.length <= MAX_SEARCH_TEXT_LENGTH && url && isSafeHyperlinkUrl(url)
-      );
+      const citationEntries = Array.from(sourceCitationMap!.entries())
+        .map(([citationText, rawUrl]) => ({ citationText, url: toSafeHyperlinkUrl(rawUrl) }))
+        .filter(
+          (entry) => entry.citationText && entry.citationText.length <= MAX_SEARCH_TEXT_LENGTH && entry.url !== null
+        );
 
-      const searches = citationEntries.map(([citationText, url]) => ({
-        url,
+      const searches = citationEntries.map(({ citationText, url }) => ({
+        url: url as SafeHyperlinkUrl,
         results: context.document.body.search(citationText, { matchCase: false, matchWholeWord: false }),
       }));
       searches.forEach((entry) => entry.results.load("items"));
       await context.sync();
 
-      const matchedItems: { item: Word.Range; url: string }[] = [];
+      const matchedItems: { item: Word.Range; url: SafeHyperlinkUrl }[] = [];
       for (const entry of searches) {
         for (const item of entry.results.items) {
           item.load("text");
@@ -279,7 +264,7 @@ async function applyCaseLawHyperlinksFromSource() {
           continue;
         }
         const normalizedText = normalizeText(item.text || "");
-        await applyHyperlinkToItem(context, item, url, normalizedText);
+        await insertSafeHyperlink(context, item, url, toSafeHtml(normalizedText));
         appliedCount += 1;
       }
 
@@ -337,9 +322,10 @@ async function addParentheticalHyperlinks() {
   try {
     await Word.run(async (context) => {
       const validEntries = parentheticalEntries
-        .map((entry) => ({ ...entry, url: entry.url.trim() }))
+        .map((entry) => ({ ...entry, url: toSafeHyperlinkUrl(entry.url.trim()) }))
         .filter(
-          (entry) => entry.url && entry.citation.length <= MAX_SEARCH_TEXT_LENGTH && isSafeHyperlinkUrl(entry.url)
+          (entry): entry is ParentheticalEntry & { url: SafeHyperlinkUrl } =>
+            entry.url !== null && entry.citation.length <= MAX_SEARCH_TEXT_LENGTH
         );
 
       const searches = validEntries.map((entry) => ({
@@ -349,7 +335,7 @@ async function addParentheticalHyperlinks() {
       searches.forEach((s) => s.results.load("items"));
       await context.sync();
 
-      const matchedItems: { item: Word.Range; entry: ParentheticalEntry }[] = [];
+      const matchedItems: { item: Word.Range; entry: ParentheticalEntry & { url: SafeHyperlinkUrl } }[] = [];
       for (const s of searches) {
         for (const item of s.results.items) {
           matchedItems.push({ item, entry: s.entry });
@@ -363,7 +349,7 @@ async function addParentheticalHyperlinks() {
         if (item.hyperlinks.items.length > 0) {
           continue;
         }
-        await applyHyperlinkToItem(context, item, entry.url, entry.citation);
+        await insertSafeHyperlink(context, item, entry.url, toSafeHtml(entry.citation));
         addedCount += 1;
       }
 
@@ -549,7 +535,8 @@ async function applyHyperlinksViaProvider() {
 
         const parsed = parseCaseCitation(raw) || { raw };
         const match = await provider.lookupCitation(parsed);
-        if (!match || !isSafeHyperlinkUrl(match.url)) {
+        const safeUrl = match ? toSafeHyperlinkUrl(match.url) : null;
+        if (!safeUrl) {
           if (supportsRateLimitAwareness(provider) && provider.wasLastRequestRateLimited()) {
             rateLimitedCount += 1;
           } else {
@@ -559,7 +546,7 @@ async function applyHyperlinksViaProvider() {
         }
 
         for (const item of unlinkedItems) {
-          await applyHyperlinkToItem(context, item, match.url, raw);
+          await insertSafeHyperlink(context, item, safeUrl, toSafeHtml(raw));
         }
 
         linkedCount += 1;
