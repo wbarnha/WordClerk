@@ -63,7 +63,7 @@ Plans:
   3. ESLint fails the build (`no-restricted-syntax`) if a raw `insertHtml`/`insertHyperlink`/`insertComment` call is added outside `safeInsertion.ts`.
   4. Hyperlinking, Bluebook checking, hallucination checking, and opinion-text embedding still work correctly against a real Word document after the wrapper refactor (manual smoke test).
 
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 1**
@@ -72,7 +72,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1's publish checkpoint)*
 
-- [ ] 02-02-PLAN.md — Bump openclerk-word's openclerk-core dependency; build src/taskpane/safeInsertion.ts + dedicated tests (ESCAPE-01, ESCAPE-02)
+- [x] 02-02-PLAN.md — Bump openclerk-word's openclerk-core dependency; build src/taskpane/safeInsertion.ts + dedicated tests (ESCAPE-01, ESCAPE-02)
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -119,6 +119,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. openclerk-core Dependency Cleanup | 2/2 | Complete    | 2026-07-15 |
-| 2. Escaping Hardening | 1/4 | In Progress|  |
+| 2. Escaping Hardening | 2/4 | In Progress|  |
 | 3. Provider Deduplication | 0/TBD | Not started | - |
 | 4. Partner Center Submission Prep | 0/TBD | Not started | - |

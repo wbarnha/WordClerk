@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 02
 current_phase_name: escaping-hardening
 status: executing
-stopped_at: "Completed 02-01-PLAN.md (openclerk-core@0.3.0 branded types published to npm via PR #18)"
-last_updated: "2026-07-16T03:04:10.748Z"
+stopped_at: Completed 02-02-PLAN.md (safeInsertion.ts wrapper module + dedicated tests created; openclerk-core bumped to 0.3.0)
+last_updated: "2026-07-16T03:16:53.493Z"
 last_activity: 2026-07-16
 last_activity_desc: Plan 02-01 Tasks 1-3 committed in openclerk-core; Task 4 checkpoint returned
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Phase: 02 (escaping-hardening) — EXECUTING
-Plan: 2 of 4 (Tasks 1-3 complete; Task 4 blocked on human publish action, D-03)
+Plan: 3 of 4 (Tasks 1-3 complete; Task 4 blocked on human publish action, D-03)
 Status: Blocked at checkpoint — awaiting human confirmation of openclerk-core@0.3.0 publish
 Last activity: 2026-07-16 — Plan 02-01 Tasks 1-3 committed in openclerk-core; Task 4 checkpoint returned
 
-Progress: [█████░░░░░] 50%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [█████░░░░░] 50%
 | Phase 01 P01 | 25min | 3 tasks | 0 files |
 | Phase 01 P02 | 20min | 3 tasks | 2 files |
 | Phase 02 P01 | 7min (Tasks 1-3) + human publish action | 4 tasks | 5 files |
+| Phase 02 P02 | 18min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,8 @@ Recent decisions affecting current work:
 - [Phase ?]: Fresh post-merge duplication audit confirmed zero logic in src/commands/ or scripts/ duplicates openclerk-core; CONCERNS.md duplication tech-debt entry marked Resolved, closing CORE-02.
 - [Phase ?]: openclerk-core bumped to 0.3.0 (semver minor) for the new SafeHyperlinkUrl/SafeHtml branded types and smart constructors; local commits ready, publish requires human tag push per D-03.
 - [Phase ?]: [Phase 02 Plan 01]: openclerk-core@0.3.0 published via PR #18 merge (feat/escape-01-branded-types -> main) + human tag push v0.3.0; publish.yml run 29467821795 succeeded; npm view confirms 0.3.0 resolvable from public registry. PR path used instead of direct push since local main had diverged from origin/main via historical rebase-merges.
+- [Phase ?]: Phase 02 Plan 02: Standardized both insertSafeHyperlink and insertSafeComment on the wrapper-takes-context-and-syncs-internally calling convention, resolving RESEARCH.md's Open Question 2 (the two-pattern inconsistency between word.ts's hyperlink dispatch and its insertComment call site).
+- [Phase ?]: Phase 02 Plan 02: Rule 3 auto-fix -- stubbed the Word.InsertLocation global in tests/safeInsertion.test.ts since Office.js's Word global has no presence under Jest's node testEnvironment; needed for the ported dispatch logic to execute under test.
 
 ### Pending Todos
 
@@ -98,6 +101,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-16T03:04:10.720Z
-Stopped at: Completed 02-01-PLAN.md (openclerk-core@0.3.0 branded types published to npm via PR #18)
+Last session: 2026-07-16T03:16:53.449Z
+Stopped at: Completed 02-02-PLAN.md (safeInsertion.ts wrapper module + dedicated tests created; openclerk-core bumped to 0.3.0)
 Resume file: None

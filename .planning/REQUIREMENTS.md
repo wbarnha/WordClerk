@@ -10,10 +10,10 @@ Each maps to roadmap phases.
 
 ### Escaping Hardening
 
-- [ ] **ESCAPE-01**: Branded `SafeHtml`/`SafeHyperlinkUrl` types are added to `utils.ts` and used to
+- [x] **ESCAPE-01**: Branded `SafeHtml`/`SafeHyperlinkUrl` types are added to `utils.ts` and used to
       type-constrain Office.js insertion helpers
 
-- [ ] **ESCAPE-02**: A single wrapper module (`safeInsertion.ts`) owns all raw Office.js
+- [x] **ESCAPE-02**: A single wrapper module (`safeInsertion.ts`) owns all raw Office.js
       `insertHtml`/`insertHyperlink`/`insertComment` calls
 
 - [ ] **ESCAPE-03**: An ESLint `no-restricted-syntax` rule bans direct calls to raw Office.js
@@ -97,8 +97,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ESCAPE-01 | Phase 2 | Pending |
-| ESCAPE-02 | Phase 2 | Pending |
+| ESCAPE-01 | Phase 2 | Complete |
+| ESCAPE-02 | Phase 2 | Complete |
 | ESCAPE-03 | Phase 2 | Pending |
 | PROVIDER-01 | Phase 3 | Pending |
 | PROVIDER-02 | Phase 3 | Pending |
