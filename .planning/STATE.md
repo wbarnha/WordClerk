@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 02
 current_phase_name: escaping-hardening
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-07-16T03:24:10.550Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-07-16T03:38:47.919Z"
 last_activity: 2026-07-16
 last_activity_desc: Plan 02-01 Tasks 1-3 committed in openclerk-core; Task 4 checkpoint returned
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -32,7 +32,7 @@ Plan: 4 of 4 (Tasks 1-3 complete; Task 4 blocked on human publish action, D-03)
 Status: Blocked at checkpoint — awaiting human confirmation of openclerk-core@0.3.0 publish
 Last activity: 2026-07-16 — Plan 02-01 Tasks 1-3 committed in openclerk-core; Task 4 checkpoint returned
 
-Progress: [████████░░] 83%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [████████░░] 83%
 | Phase 02 P01 | 7min (Tasks 1-3) + human publish action | 4 tasks | 5 files |
 | Phase 02 P02 | 18min | 3 tasks | 5 files |
 | Phase 02 P03 | 20min | 2 tasks | 1 files |
+| Phase 02 P04 | 35min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 02 Plan 02: Standardized both insertSafeHyperlink and insertSafeComment on the wrapper-takes-context-and-syncs-internally calling convention, resolving RESEARCH.md's Open Question 2 (the two-pattern inconsistency between word.ts's hyperlink dispatch and its insertComment call site).
 - [Phase ?]: Phase 02 Plan 02: Rule 3 auto-fix -- stubbed the Word.InsertLocation global in tests/safeInsertion.test.ts since Office.js's Word global has no presence under Jest's node testEnvironment; needed for the ported dispatch logic to execute under test.
 - [Phase ?]: Phase 02 Plan 03: word.ts's three hyperlink-insertion workflows and its comment-insertion/parseSourceDocument call sites all migrated onto safeInsertion.ts's insertSafeHyperlink/insertSafeComment and openclerk-core's toSafeHyperlinkUrl/toSafeHtml smart constructors; applyHyperlinkToItem deleted; word.ts now contains zero raw Office.js insertion calls and zero references to the old unbranded escapeHtml/isSafeHyperlinkUrl.
+- [Phase ?]: Phase 02 Plan 04: eslint.config.mjs added at project root (the only config office-addin-lint's npm run lint resolves) with a no-restricted-syntax bypass-guard scoped to safeInsertion.ts; .eslintrc.json deleted as dead config; CI lint job added gating publish (D-05); guard machine-proven against a deliberately-reintroduced insertHtml violation. All four Roadmap Phase 2 Success Criteria satisfied.
 
 ### Pending Todos
 
@@ -103,6 +105,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-16T03:24:10.513Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-07-16T03:38:47.884Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None

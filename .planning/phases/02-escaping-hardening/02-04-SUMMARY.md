@@ -152,3 +152,7 @@ None - no external service configuration required.
 ---
 *Phase: 02-escaping-hardening*
 *Completed: 2026-07-16*
+
+## Self-Check: PASSED
+
+All claimed changes verified: `eslint.config.mjs` exists, `.eslintrc.json` is deleted, both task commit hashes (`069f27a`, `dba863e`) are present in `git log --oneline --all`, and this SUMMARY.md is written to disk.

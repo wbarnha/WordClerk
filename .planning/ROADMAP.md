@@ -63,7 +63,7 @@ Plans:
   3. ESLint fails the build (`no-restricted-syntax`) if a raw `insertHtml`/`insertHyperlink`/`insertComment` call is added outside `safeInsertion.ts`.
   4. Hyperlinking, Bluebook checking, hallucination checking, and opinion-text embedding still work correctly against a real Word document after the wrapper refactor (manual smoke test).
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans executed
 
 Plans:
 **Wave 1**
@@ -80,7 +80,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 02-04-PLAN.md — Add eslint.config.mjs bypass-guard + CI lint job, machine-prove it rejects a reintroduced violation (ESCAPE-03)
+- [x] 02-04-PLAN.md — Add eslint.config.mjs bypass-guard + CI lint job, machine-prove it rejects a reintroduced violation (ESCAPE-03)
 
 ### Phase 3: Provider Deduplication
 
@@ -119,6 +119,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. openclerk-core Dependency Cleanup | 2/2 | Complete    | 2026-07-15 |
-| 2. Escaping Hardening | 3/4 | In Progress|  |
+| 2. Escaping Hardening | 4/4 | In Progress|  |
 | 3. Provider Deduplication | 0/TBD | Not started | - |
 | 4. Partner Center Submission Prep | 0/TBD | Not started | - |

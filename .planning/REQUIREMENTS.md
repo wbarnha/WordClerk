@@ -16,7 +16,7 @@ Each maps to roadmap phases.
 - [x] **ESCAPE-02**: A single wrapper module (`safeInsertion.ts`) owns all raw Office.js
       `insertHtml`/`insertHyperlink`/`insertComment` calls
 
-- [ ] **ESCAPE-03**: An ESLint `no-restricted-syntax` rule bans direct calls to raw Office.js
+- [x] **ESCAPE-03**: An ESLint `no-restricted-syntax` rule bans direct calls to raw Office.js
       insertion APIs outside the wrapper module, failing the build on a bypass
 
 ### Provider Deduplication
@@ -99,7 +99,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | ESCAPE-01 | Phase 2 | Complete |
 | ESCAPE-02 | Phase 2 | Complete |
-| ESCAPE-03 | Phase 2 | Pending |
+| ESCAPE-03 | Phase 2 | Complete |
 | PROVIDER-01 | Phase 3 | Pending |
 | PROVIDER-02 | Phase 3 | Pending |
 | CORE-01 | Phase 1 | Complete |
