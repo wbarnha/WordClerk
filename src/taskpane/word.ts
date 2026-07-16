@@ -1216,8 +1216,7 @@ async function embedCitedOpinionText() {
         // A Word comment is collapsed by default (just a margin icon) and expands on click --
         // exactly the "embedded, expandable/collapsible" behavior this feature is for, using
         // Word's own native UI instead of a custom widget.
-        searchResults.items[0].insertComment(buildEmbeddedCommentContent(raw, excerpt));
-        await context.sync();
+        await insertSafeComment(context, searchResults.items[0], toSafeHtml(buildEmbeddedCommentContent(raw, excerpt)));
         results.push({ raw, embedded: true, reason: null });
       }
 
@@ -1410,7 +1409,7 @@ async function parseSourceDocument(file: File): Promise<CitationMap> {
     const url = relationshipId ? relationships.get(relationshipId) || "" : "";
     const text = normalizeText(getElementText(hyperlink));
 
-    if (text && url && isLikelyCaseCitation(text) && isSafeHyperlinkUrl(url)) {
+    if (text && url && isLikelyCaseCitation(text) && toSafeHyperlinkUrl(url) !== null) {
       citationMap.set(text, url);
     }
   }
