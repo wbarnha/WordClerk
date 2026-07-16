@@ -45,7 +45,11 @@ export async function insertSafeHyperlink(
  * rationale on insertSafeHyperlink above. text arrives already branded, so no escaping happens
  * here either.
  */
-export async function insertSafeComment(context: Word.RequestContext, range: Word.Range, text: SafeHtml): Promise<void> {
+export async function insertSafeComment(
+  context: Word.RequestContext,
+  range: Word.Range,
+  text: SafeHtml
+): Promise<void> {
   range.insertComment(text);
   await context.sync();
 }
