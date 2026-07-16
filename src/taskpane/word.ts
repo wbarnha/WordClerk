@@ -30,7 +30,7 @@ import {
   BluebookIssue,
   SafeHyperlinkUrl,
 } from "openclerk-core";
-import { insertSafeHyperlink, insertSafeComment } from "./safeInsertion";
+import { insertSafeHyperlink, insertSafeComment, insertSafeOoxml } from "./safeInsertion";
 
 type CitationMap = Map<string, string>;
 type ParentheticalEntry = { citation: string; url: string; id: string };
@@ -1599,8 +1599,7 @@ async function removeAllHyperlinks(): Promise<void> {
       );
 
       // Replace entire body OOXML with cleaned version
-      body.insertOoxml(strippedOoxml, Word.InsertLocation.replace);
-      await context.sync();
+      await insertSafeOoxml(context, body, strippedOoxml);
 
       setStatus(`Removed ${removedCount} hyperlink(s) from the document.`);
     });

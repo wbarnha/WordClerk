@@ -46,6 +46,10 @@ const RAW_INSERTION_SELECTORS = [
     selector: "CallExpression[callee.property.name='insertComment']",
     message: "Raw insertComment calls must go through src/taskpane/safeInsertion.ts.",
   },
+  {
+    selector: "CallExpression[callee.property.name='insertOoxml']",
+    message: "Raw insertOoxml calls must go through src/taskpane/safeInsertion.ts.",
+  },
 ];
 
 export default [
