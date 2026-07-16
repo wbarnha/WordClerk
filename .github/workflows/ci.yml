@@ -70,6 +70,26 @@ jobs:
       - name: Run tests
         run: npm test
 
+  lint:
+    name: Lint
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
   installer-smoke:
     name: Installer Smoke
     needs: build
@@ -279,7 +299,7 @@ jobs:
 
   publish:
     name: Publish Add-in
-    needs: [build, test, installer-smoke, installer-smoke-macos, offline-smoke]
+    needs: [build, test, lint, installer-smoke, installer-smoke-macos, offline-smoke]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
