@@ -164,3 +164,7 @@ None - no external service configuration required.
 ---
 *Phase: 02-escaping-hardening*
 *Completed: 2026-07-16*
+
+## Self-Check: PASSED
+
+All claimed files exist on disk (`src/taskpane/safeInsertion.ts`, `tests/safeInsertion.test.ts`, this SUMMARY.md) and all four claimed commit hashes (`28863d2`, `0891ec7`, `6d513f5`, `fc80270`) are present in `git log --oneline --all`.
