@@ -263,9 +263,12 @@ async function applyCaseLawHyperlinksFromSource() {
 
   try {
     await Word.run(async (context) => {
-      // Batch all searches/loads/inserts into a handful of context.sync() calls instead of a
-      // few per citation -- a document with 50-100+ citations previously meant 200-400+
-      // sequential round-trips, which is enough to make the taskpane visibly freeze.
+      // The search/load/filter passes below are batched into three context.sync() calls
+      // regardless of citation count. The actual insertion loop further down, however, calls
+      // insertSafeHyperlink once per matched citation, and insertSafeHyperlink unconditionally
+      // syncs internally (safeInsertion.ts) -- so a document with 50-100+ citations still means
+      // roughly one context.sync() round-trip per citation for the insertion phase itself. Only
+      // the search/load phase is batched today, not insertion.
       const citationEntries = Array.from(sourceCitationMap!.entries())
         .map(([citationText, rawUrl]) => ({ citationText, url: toSafeHyperlinkUrl(rawUrl) }))
         .filter(
