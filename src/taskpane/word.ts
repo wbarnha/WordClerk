@@ -51,11 +51,14 @@ type EmbedTextResult = { raw: string; embedded: boolean; reason: string | null }
 // re-fetching (wasteful given CourtListener's rate limit) and inserting a duplicate.
 const EMBEDDED_TEXT_COMMENT_MARKER = "[OpenClerk embedded citation text]";
 
-function buildEmbeddedCommentContent(raw: string, excerpt: string): string {
+// Exported for the feature-level insertion smoke test (tests/smoke.wordInsertion.test.ts), which
+// drives this real builder into the real insertSafeComment sink to prove cited text with &/'/"/<>
+// reaches Word's plain-text comment API uncorrupted (the CR-02 / audit-#1 plain-text-sink guarantee).
+export function buildEmbeddedCommentContent(raw: string, excerpt: string): string {
   return `${EMBEDDED_TEXT_COMMENT_MARKER} ${raw}\n\n${excerpt}`;
 }
 
-function citationHasEmbeddedComment(commentContent: string, raw: string): boolean {
+export function citationHasEmbeddedComment(commentContent: string, raw: string): boolean {
   return (
     commentContent === `${EMBEDDED_TEXT_COMMENT_MARKER} ${raw}` ||
     commentContent.startsWith(`${EMBEDDED_TEXT_COMMENT_MARKER} ${raw}\n`)
