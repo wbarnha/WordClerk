@@ -7,6 +7,7 @@
 
 /* global Word */
 
+import { escapeHtml } from "openclerk-core";
 import type { SafeHtml, SafeHyperlinkUrl } from "openclerk-core";
 
 /**
@@ -29,9 +30,11 @@ export async function insertSafeHyperlink(
     // introduced by this refactor (RESEARCH.md Pitfall 2).
     (item as any).insertHyperlink(url, displayText, Word.InsertLocation.replace);
   } else if (typeof (item as any).insertHtml === "function") {
-    // url/displayText are already branded (validated/escaped) by construction -- no further
-    // escaping step belongs here.
-    const html = `<a href="${url}">${displayText}</a>`;
+    // displayText is already branded (HTML-escaped) by construction. url is only branded for
+    // scheme safety (SafeHyperlinkUrl certifies http/https/mailto, nothing about the
+    // HTML-attribute context it's spliced into here) -- escapeHtml is required on this specific
+    // sink so a "><... payload embedded in the URL can't break out of the href attribute.
+    const html = `<a href="${escapeHtml(url)}">${displayText}</a>`;
     (item as any).insertHtml(html, Word.InsertLocation.replace);
   } else {
     // Last-resort: replace with plain text (no hyperlink)
