@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2
-current_phase_name: Escaping Hardening
+current_phase: 02
+current_phase_name: escaping-hardening
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-07-16T01:15:21.142Z"
+stopped_at: "Phase 02 Plan 01: Tasks 1-3 complete (openclerk-core branded types added, tested, version bumped to 0.3.0, committed locally); Task 4 blocked on human publish action (D-03)"
+last_updated: "2026-07-16T02:06:45.238Z"
 last_activity: 2026-07-15
-last_activity_desc: Phase 01 complete, transitioned to Phase 2
+last_activity_desc: Phase 02 execution started
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 6
+  completed_plans: 3
 ---
 
 # Project State
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Legal citation checks and hyperlinks must be accurate and trustworthy — a hallucination check must never falsely report a fabricated citation as "verified."
-**Current focus:** Phase 01 — openclerk-core-dependency-cleanup
+**Current focus:** Phase 02 — escaping-hardening
 
 ## Current Position
 
-Phase: 2 — Escaping Hardening
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-15 — Phase 01 complete, transitioned to Phase 2
+Phase: 02 (escaping-hardening) — EXECUTING
+Plan: 1 of 4 (Tasks 1-3 complete; Task 4 blocked on human publish action, D-03)
+Status: Blocked at checkpoint — awaiting human confirmation of openclerk-core@0.3.0 publish
+Last activity: 2026-07-16 — Plan 02-01 Tasks 1-3 committed in openclerk-core; Task 4 checkpoint returned
 
 Progress: [██████████] 100%
 
@@ -73,6 +73,7 @@ Recent decisions affecting current work:
 - PROJECT.md: Bumped PR #33's `openclerk-core` dependency from git tag `v0.2.1` to npm registry `^0.2.6` (v0.2.1 predates ReDoS fixes and a hallucination-verification bypass fix; git-tag dependency fails to install under npm's `allow-scripts` policy).
 - [Phase ?]: PR #33 merged via GitHub merge-commit strategy (0f48462); openclerk-core@0.2.6 confirmed resolved from public npm registry, build/test green, hallucination-check Core Value guard preserved verbatim in word.ts.
 - [Phase ?]: Fresh post-merge duplication audit confirmed zero logic in src/commands/ or scripts/ duplicates openclerk-core; CONCERNS.md duplication tech-debt entry marked Resolved, closing CORE-02.
+- [Phase ?]: openclerk-core bumped to 0.3.0 (semver minor) for the new SafeHyperlinkUrl/SafeHtml branded types and smart constructors; local commits ready, publish requires human tag push per D-03.
 
 ### Pending Todos
 
@@ -82,6 +83,7 @@ None yet.
 
 - `TERMS.md` §8 governing-law jurisdiction is a placeholder (`[jurisdiction to be specified]`) — may need counsel input; tracked as a separate task, does not block PR #27 merge in Phase 4 (SUBMIT-01).
 - Partner Center category/industry tag selection (Phase 4) depends on the live Partner Center picker UI — not confirmed by research, re-check at submission time.
+- Phase 02 Plan 1 blocked at Task 4 (checkpoint:human-action, gate=blocking-human, D-03): openclerk-core@0.3.0 branded-type commits are local-only (C:\Users\willi\openclerk-core, main, commits 07381e1/cc163be/40cb423/8c9906e) -- need human to push commits, tag v0.3.0, push tag, and confirm publish.yml succeeds before Plan 02 (Wave 2) can consume openclerk-core@0.3.0 from the public npm registry.
 
 ## Deferred Items
 
@@ -95,6 +97,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-16T00:23:48.223Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-escaping-hardening/02-CONTEXT.md
+Last session: 2026-07-16T02:06:44.458Z
+Stopped at: Phase 02 Plan 01: Tasks 1-3 complete (openclerk-core branded types added, tested, version bumped to 0.3.0, committed locally); Task 4 blocked on human publish action (D-03)
+Resume file: .planning/phases/02-escaping-hardening/02-01-SUMMARY.md

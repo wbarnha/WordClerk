@@ -63,12 +63,12 @@ Plans:
   3. ESLint fails the build (`no-restricted-syntax`) if a raw `insertHtml`/`insertHyperlink`/`insertComment` call is added outside `safeInsertion.ts`.
   4. Hyperlinking, Bluebook checking, hallucination checking, and opinion-text embedding still work correctly against a real Word document after the wrapper refactor (manual smoke test).
 
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — Add branded SafeHtml/SafeHyperlinkUrl types + smart constructors to openclerk-core, publish v0.3.0 after a human checkpoint (ESCAPE-01)
+- [ ] 02-01-PLAN.md — Add branded SafeHtml/SafeHyperlinkUrl types + smart constructors to openclerk-core, publish v0.3.0 after a human checkpoint (ESCAPE-01) — **Tasks 1-3 done (local commits in openclerk-core); Task 4 (tag push + npm publish) blocked on human action per D-03, see STATE.md blockers**
 
 **Wave 2** *(blocked on Wave 1's publish checkpoint)*
 
@@ -119,6 +119,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. openclerk-core Dependency Cleanup | 2/2 | Complete    | 2026-07-15 |
-| 2. Escaping Hardening | 0/4 | Not started | - |
+| 2. Escaping Hardening | 1/4 | In Progress|  |
 | 3. Provider Deduplication | 0/TBD | Not started | - |
 | 4. Partner Center Submission Prep | 0/TBD | Not started | - |
