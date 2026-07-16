@@ -45,13 +45,16 @@ export async function insertSafeHyperlink(
 
 /**
  * The only place in openclerk-word allowed to call Word.Range.insertComment directly -- see the
- * rationale on insertSafeHyperlink above. text arrives already branded, so no escaping happens
- * here either.
+ * rationale on insertSafeHyperlink above. Unlike insertSafeHyperlink's insertHtml branch,
+ * Word.Range.insertComment(commentText: string) is a plain-text-only API -- it does not render
+ * HTML. text is intentionally a plain string here, not SafeHtml: passing HTML-escaped content
+ * into a plain-text sink would corrupt any cited opinion excerpt or citation string containing
+ * &/</>/"/' into literal HTML-entity text instead of the original characters.
  */
 export async function insertSafeComment(
   context: Word.RequestContext,
   range: Word.Range,
-  text: SafeHtml
+  text: string
 ): Promise<void> {
   range.insertComment(text);
   await context.sync();

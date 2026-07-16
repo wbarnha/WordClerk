@@ -1327,7 +1327,7 @@ async function embedCitedOpinionText() {
         await insertSafeComment(
           context,
           searchResults.items[0],
-          toSafeHtml(buildEmbeddedCommentContent(raw, excerpt))
+          buildEmbeddedCommentContent(raw, excerpt)
         );
         results.push({ raw, embedded: true, reason: null });
       }
