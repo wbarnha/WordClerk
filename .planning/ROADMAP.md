@@ -68,7 +68,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — Add branded SafeHtml/SafeHyperlinkUrl types + smart constructors to openclerk-core, publish v0.3.0 after a human checkpoint (ESCAPE-01) — **Tasks 1-3 done (local commits in openclerk-core); Task 4 (tag push + npm publish) blocked on human action per D-03, see STATE.md blockers**
+- [x] 02-01-PLAN.md — Add branded SafeHtml/SafeHyperlinkUrl types + smart constructors to openclerk-core, publish v0.3.0 after a human checkpoint (ESCAPE-01) — **Tasks 1-3 done (local commits in openclerk-core); Task 4 (tag push + npm publish) blocked on human action per D-03, see STATE.md blockers**
 
 **Wave 2** *(blocked on Wave 1's publish checkpoint)*
 
