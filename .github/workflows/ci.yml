@@ -8,6 +8,12 @@ on:
   release:
     types: [published]
 
+# Least-privilege default for GITHUB_TOKEN across all jobs. The build/test/lint/typecheck/
+# installer/offline jobs only need to read the repo; the deploy-pages and publish jobs override
+# this with the wider scopes they actually need (pages/id-token, contents:write/attestations).
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build
@@ -69,6 +75,46 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+  lint:
+    name: Lint
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+  typecheck:
+    name: Typecheck
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run typecheck
+        run: npm run typecheck
 
   installer-smoke:
     name: Installer Smoke
@@ -279,7 +325,7 @@ jobs:
 
   publish:
     name: Publish Add-in
-    needs: [build, test, installer-smoke, installer-smoke-macos, offline-smoke]
+    needs: [build, test, lint, typecheck, installer-smoke, installer-smoke-macos, offline-smoke]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
