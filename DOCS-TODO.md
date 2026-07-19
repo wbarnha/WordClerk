@@ -30,6 +30,11 @@ reports zero, everything in the "Placeholder" section below is done.
   - **What:** attach (in Partner Center) and name a small Word document containing a few real case
     citations, so a reviewer can exercise the local features immediately.
 
+- [x] **Support contact email (Partner Center account-level)** — **confirmed:**
+  `williambbarnhart@gmail.com`. Set at Partner Center → Account settings → Contact info / Program
+  agreements → Support contact (not a per-listing field, so it isn't in `manifest.xml` or the
+  hosted-URL table).
+
 ## Reminders (not auto-tracked — no placeholder marker)
 
 - [x] **"Last updated" dates** — confirmed: **July 2026** is the intended publication date, so the
