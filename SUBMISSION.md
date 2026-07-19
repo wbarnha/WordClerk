@@ -18,8 +18,9 @@ needs to test every feature. Fill in the `<FILL IN>` items before submitting.
 | Add-in name (`DisplayName`) | **OpenClerk** |
 | Publisher / `ProviderName` | **William Barnhart** — confirmed to match the Partner Center account's Publisher display name. |
 | Add-in ID (`Id`) | `3e0d3ccf-cbc6-4a3c-a29a-75d96be5bf89` |
-| Version | `1.0.0.0` |
+| Version | `1.0.0.0` — **intentionally not synced** to the git release tag (`v0.3.0`): `office-addin-manifest validate` hard-rejects `<Version>` below 1.0 ("Manifest Version Too Low"), so a pre-1.0 project semver can't be mirrored here. Treat this as an independent "store submission" counter — bump it only when a manifest-relevant change (icon, hosted URLs, permissions, host requirements) forces a Partner Center resubmission, not on every git tag. |
 | Host / platforms | Word — desktop (Windows & Mac), Word on the web. Requires **WordApi 1.4+** (declared in the manifest). |
+| EULA | **Use Microsoft's Standard Contract** (Partner Center → Properties tab checkbox) — no custom EULA URL. `TERMS.md`/`terms.html` remains the separate in-product Terms of Use (§2 below), which Partner Center treats as a distinct field from the EULA. |
 
 ## 2. Required hosted URLs
 
@@ -36,6 +37,11 @@ via `OPENCLERK_HOST_URL` at build time). **Confirm each returns HTTP 200 over HT
 > The privacy and terms pages are generated from `PRIVACY.md` / `TERMS.md` by `scripts/build-docs.js`
 > and deployed with the rest of the site. They are separate documents (a Microsoft requirement) and
 > each names the product explicitly.
+
+> **Note:** `manifest.xml` itself has no privacy-policy field — the `<PrivacyUrl>`-style element some
+> other manifest schemas (e.g. Teams unified app manifests) have doesn't exist in this Office Add-in
+> `OfficeApp`/`VersionOverridesV1_0` schema. The privacy policy URL above is a **Partner Center
+> listing field only**; paste it directly into that form field, not into the manifest.
 
 ## 3. Notes for Certification (reviewer testing instructions)
 
@@ -83,9 +89,27 @@ Declare these on the submission form (undisclosed dependencies / paid access are
 - [x] `ProviderName` in `manifest.xml` matches the Partner Center Publisher name exactly (William Barnhart).
 - [x] `TERMS.md` governing-law clause resolved — intentionally omitted (standard for MIT-licensed
       OSS; Partner Center does not require one).
+- [x] EULA decision made — Standard Contract checkbox, no custom URL (see §1).
+- [x] `HighResolutionIconUrl` fixed to a real 64×64 PNG (`assets/logo-filled-64.png`) — Partner
+      Center rejected the previous 80×80 image with "Icon incorrectly Sized." Ribbon icons
+      (`Icon.16x16`/`32x32`/`80x80`) are a separate, correctly-sized set and were left untouched.
+- [x] `manifest.xml` `<Version>` (`1.0.0.0`) confirmed intentional, not a stale placeholder — the
+      validator requires >= 1.0, so it can't mirror the pre-1.0 git tag (`v0.3.0`); see §1.
 - [ ] Privacy, Terms, Support, and Task pane URLs all return 200 over HTTPS on the live site.
 - [ ] Production manifest contains **no** `localhost` URLs (CI "Verify production manifest URLs" gate).
 - [x] `npx office-addin-manifest validate manifest.xml` passes.
-- [ ] Store logo (300×300+) and 1–5 screenshots prepared for the Partner Center listing.
+- [x] 5 listing screenshots (1366×768 PNG) prepared at `store-assets/screenshots/` — one per
+      workflow tab (Manage Hyperlinks/file, Manage Hyperlinks/online lookup, Bluebook Check, Find
+      Hallucinations, Embed Cited Text), each showing the real production UI docked beside a mock
+      Word window. `<FILL IN: Store logo (300×300+) is still needed — not generated here>`.
 - [ ] A sample test `.docx` and a working CourtListener token attached to the certification notes.
 - [ ] Long description, category (Productivity / Legal), and search keywords drafted.
+- [x] Support email confirmed (`williambbarnhart@gmail.com`) — set in Partner Center **Account
+      settings**, not a per-listing field (see note below).
+
+**Support contact info:** Partner Center doesn't expose a per-listing "support email" field for this
+offer type — support contact is set once at the **account level** (Partner Center → Account settings
+→ Contact info / Program agreements → Support contact), not per-offer. The in-listing `SupportUrl`
+(GitHub Issues, §2 above) is what buyers/reviewers see on the product page; the account-level email
+is what Microsoft uses to reach the publisher directly. **Confirmed:** use
+`williambbarnhart@gmail.com` as the account-level support contact.

@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
   <Id>3e0d3ccf-cbc6-4a3c-a29a-75d96be5bf89</Id>
+  <!-- Deliberately NOT synced to the project's git tags (currently v0.3.0): the Office manifest
+       validator hard-rejects any <Version> below 1.0 ("Manifest Version Too Low"), so this field
+       can't track a pre-1.0 semver scheme. Treat it as an independent "store submission" counter,
+       starting at 1.0.0.0 for the first AppSource release; bump it only when a manifest-relevant
+       change (icon, URLs, permissions, host requirements) requires Partner Center resubmission,
+       not on every git tag. See SUBMISSION.md § 1 for the full rationale. -->
   <Version>1.0.0.0</Version>
   <!-- ProviderName MUST match the Publisher display name on the Partner Center account that submits
        this add-in, or AppSource validation rejects the submission. Update if the submitting account
@@ -10,7 +16,7 @@
   <DisplayName DefaultValue="OpenClerk"/>
   <Description DefaultValue="Hyperlink, Bluebook-check, and verify legal case-law citations in Word. Flags likely-fabricated citations and embeds cited opinion text. Optional lookups use CourtListener or your firm's Westlaw, LexisNexis, or Bloomberg Law credentials."/>
   <IconUrl DefaultValue="https://localhost:3000/assets/logo-filled-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/logo-filled-80.png"/>
+  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/logo-filled-64.png"/>
   <SupportUrl DefaultValue="https://github.com/OpenClerkProject/openclerk-word/issues"/>
   <!-- www.courtlistener.com is the only external service OpenClerk calls out of the box (free case-law
        lookup, see src/taskpane/providers/courtListenerProvider.ts). LexisNexis/Westlaw/Bloomberg Law
