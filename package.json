@@ -75,10 +75,11 @@
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "5.2.6"
   },
-  "_overridesRationale": "Forces patched versions of two transitively-vulnerable devDependencies (GHSA-w5hq-g745-h8pq via uuid, GHSA-5c6j-r48x-rmvq/GHSA-qj8w-gfj5-8c6v via serialize-javascript) without waiting on upstream packages to bump their own dependency ranges. See README.md > Dependency security fixes for the full explanation of every advisory addressed on this branch.",
+  "_overridesRationale": "Forces patched versions of three transitively-vulnerable devDependencies (GHSA-w5hq-g745-h8pq via uuid, GHSA-5c6j-r48x-rmvq/GHSA-qj8w-gfj5-8c6v via serialize-javascript, GHSA-xcpc-8h2w-3j85 via adm-zip) without waiting on upstream packages to bump their own dependency ranges. See README.md > Dependency security fixes for the full explanation of every advisory addressed on this branch.",
   "overrides": {
     "uuid": "^14.0.1",
-    "serialize-javascript": "^7.0.7"
+    "serialize-javascript": "^7.0.7",
+    "adm-zip": "^0.6.0"
   },
   "jest": {
     "preset": "ts-jest",
