@@ -10,20 +10,14 @@ reports zero, everything in the "Placeholder" section below is done.
 
 ## Placeholders (`npm run docs:pending` tracks these)
 
-- [ ] **Governing-law jurisdiction** — the one true blocker to publishing the Terms page.
-  - **Where:** `TERMS.md` § 8 (the `[jurisdiction to be specified]` on ~line 85).
-  - **What:** replace with the chosen jurisdiction (e.g. `the State of New York, USA`), and delete
-    the `<!-- TODO ... -->` comment just above it.
-  - **Decision owner:** the publisher, ideally with counsel — don't invent one.
-  - **Also update:** the checklist reference in `SUBMISSION.md` § 5.
+- [x] **Governing-law jurisdiction** — **resolved:** `TERMS.md` § 8 (Governing law) was dropped
+  rather than filled in, following standard practice for MIT-licensed open-source projects (the MIT
+  License carries no choice-of-law clause and Microsoft Partner Center doesn't require one). Contact
+  is now § 8.
 
-- [ ] **Publisher / `ProviderName` confirmation.**
-  - **Where:** `SUBMISSION.md` § 1 (`<FILL IN: confirm>` on the Publisher row).
-  - **What:** confirm the publisher name matches your Partner Center account's Publisher display
-    name **exactly**. Current value everywhere is **William Barnhart**.
-  - **Also update (only if the confirmed name differs):** `manifest.xml` `<ProviderName>`,
-    `PRIVACY.md` ("published and maintained by …"), `TERMS.md` (intro), `SUBMISSION.md` § 1.
-    A mismatch here is a top AppSource rejection cause.
+- [x] **Publisher / `ProviderName` confirmation** — **confirmed as `William Barnhart`**, matching the
+  Partner Center account's Publisher display name. Consistent across `manifest.xml`, `PRIVACY.md`,
+  `TERMS.md`, and `SUBMISSION.md`.
 
 - [ ] **Reviewer CourtListener API token.**
   - **Where:** `SUBMISSION.md` § 3 (`<FILL IN: provide a working token …>`).
@@ -38,8 +32,8 @@ reports zero, everything in the "Placeholder" section below is done.
 
 ## Reminders (not auto-tracked — no placeholder marker)
 
-- [ ] **"Last updated" dates** — `PRIVACY.md` and `TERMS.md` both say **July 2026**. Bump each to
-  the actual publication date when you finalize the documents.
+- [x] **"Last updated" dates** — confirmed: **July 2026** is the intended publication date, so the
+  dates in `PRIVACY.md` and `TERMS.md` are final as written.
 
 ## How the tracking works
 

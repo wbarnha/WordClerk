@@ -16,7 +16,7 @@ needs to test every feature. Fill in the `<FILL IN>` items before submitting.
 | Field | Value |
 |---|---|
 | Add-in name (`DisplayName`) | **OpenClerk** |
-| Publisher / `ProviderName` | **William Barnhart** — *must exactly match the Partner Center account's Publisher display name.* `<FILL IN: confirm>` |
+| Publisher / `ProviderName` | **William Barnhart** — confirmed to match the Partner Center account's Publisher display name. |
 | Add-in ID (`Id`) | `3e0d3ccf-cbc6-4a3c-a29a-75d96be5bf89` |
 | Version | `1.0.0.0` |
 | Host / platforms | Word — desktop (Windows & Mac), Word on the web. Requires **WordApi 1.4+** (declared in the manifest). |
@@ -80,12 +80,12 @@ Declare these on the submission form (undisclosed dependencies / paid access are
 
 ## 5. Pre-submission checklist
 
-- [ ] `ProviderName` in `manifest.xml` matches the Partner Center Publisher name exactly.
-- [ ] `TERMS.md` § 8 governing-law jurisdiction filled in (currently a placeholder). `<FILL IN: jurisdiction>`
+- [x] `ProviderName` in `manifest.xml` matches the Partner Center Publisher name exactly (William Barnhart).
+- [x] `TERMS.md` governing-law clause resolved — intentionally omitted (standard for MIT-licensed
+      OSS; Partner Center does not require one).
 - [ ] Privacy, Terms, Support, and Task pane URLs all return 200 over HTTPS on the live site.
 - [ ] Production manifest contains **no** `localhost` URLs (CI "Verify production manifest URLs" gate).
-- [ ] `npx office-addin-manifest validate manifest.xml` passes (run where the Microsoft validation
-      endpoint is reachable — it is blocked in the sandboxed CI/agent network).
+- [x] `npx office-addin-manifest validate manifest.xml` passes.
 - [ ] Store logo (300×300+) and 1–5 screenshots prepared for the Partner Center listing.
 - [ ] A sample test `.docx` and a working CourtListener token attached to the certification notes.
 - [ ] Long description, category (Productivity / Legal), and search keywords drafted.
