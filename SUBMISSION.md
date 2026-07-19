@@ -81,7 +81,7 @@ Declare these on the submission form (undisclosed dependencies / paid access are
 ## 5. Pre-submission checklist
 
 - [ ] `ProviderName` in `manifest.xml` matches the Partner Center Publisher name exactly.
-- [ ] `TERMS.md` § 8 governing-law jurisdiction filled in (currently a placeholder). `<FILL IN>`
+- [ ] `TERMS.md` § 8 governing-law jurisdiction filled in (currently a placeholder). `<FILL IN: jurisdiction>`
 - [ ] Privacy, Terms, Support, and Task pane URLs all return 200 over HTTPS on the live site.
 - [ ] Production manifest contains **no** `localhost` URLs (CI "Verify production manifest URLs" gate).
 - [ ] `npx office-addin-manifest validate manifest.xml` passes (run where the Microsoft validation

@@ -15,6 +15,7 @@
     "build": "webpack --mode production && node scripts/build-docs.js",
     "build:dev": "webpack --mode development",
     "build:docs": "node scripts/build-docs.js",
+    "docs:pending": "node scripts/docs-pending.js",
     "dev-server": "webpack serve --mode development",
     "lint": "office-addin-lint check",
     "lint:fix": "office-addin-lint fix",
