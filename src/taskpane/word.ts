@@ -151,10 +151,14 @@ Office.onReady((info) => {
       sourceFileInput.addEventListener("change", onSourceFileSelected);
     }
     if (applyButton) {
-      applyButton.addEventListener("click", () => withBusyButton(applyButton, applyCaseLawHyperlinksFromSource));
+      applyButton.addEventListener("click", () =>
+        withBusyButton(applyButton, applyCaseLawHyperlinksFromSource)
+      );
     }
     if (removeButton) {
-      removeButton.addEventListener("click", () => withBusyButton(removeButton, removeCaseLawHyperlinks));
+      removeButton.addEventListener("click", () =>
+        withBusyButton(removeButton, removeCaseLawHyperlinks)
+      );
     }
     if (workflowSelect) {
       workflowSelect.addEventListener("change", () => setActiveTab(workflowSelect.value as TabId));
@@ -172,7 +176,9 @@ Office.onReady((info) => {
       });
     }
     if (scanButton) {
-      scanButton.addEventListener("click", () => withBusyButton(scanButton, scanParentheticalCitations));
+      scanButton.addEventListener("click", () =>
+        withBusyButton(scanButton, scanParentheticalCitations)
+      );
     }
     if (addParentheticalButton) {
       addParentheticalButton.addEventListener("click", () =>
@@ -228,7 +234,9 @@ Office.onReady((info) => {
       embedTextProviderSelect.addEventListener("change", renderEmbedTextProviderStatus);
     }
     if (embedCitedTextButton) {
-      embedCitedTextButton.addEventListener("click", () => withBusyButton(embedCitedTextButton, embedCitedOpinionText));
+      embedCitedTextButton.addEventListener("click", () =>
+        withBusyButton(embedCitedTextButton, embedCitedOpinionText)
+      );
     }
     if (removeEmbeddedTextButton) {
       removeEmbeddedTextButton.addEventListener("click", () =>
@@ -1516,7 +1524,10 @@ function setStatus(message: string) {
 // rate-limited API lookups) can't be re-triggered by an impatient second click while the first
 // run is still in flight -- which would waste API quota and could apply/insert duplicate edits.
 // Disabled buttons don't dispatch click events at all, so this alone is enough to prevent re-entrancy.
-async function withBusyButton(button: HTMLButtonElement | null, action: () => Promise<void>): Promise<void> {
+async function withBusyButton(
+  button: HTMLButtonElement | null,
+  action: () => Promise<void>
+): Promise<void> {
   if (!button) {
     await action();
     return;
