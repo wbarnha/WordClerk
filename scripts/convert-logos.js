@@ -5,7 +5,10 @@ async function convert() {
   const sharp = require('sharp');
   const repoRoot = path.resolve(__dirname, '..');
   const src = path.join(repoRoot, 'dist', 'assets', 'logo-filled.svg');
-  const sizes = [16, 32, 80];
+  // 64 is required by HighResolutionIconUrl (manifest.xml) -- Partner Center rejects anything else
+  // there. 16/32/80 remain for IconUrl and the ribbon Icon.16x16/32x32/80x80 resources, which use
+  // Office's separate ribbon-icon size set and are correct as-is.
+  const sizes = [16, 32, 64, 80];
   const targets = [];
   for (const size of sizes) {
     targets.push({
